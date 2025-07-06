@@ -12,6 +12,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -21,11 +22,16 @@ import {
 } from 'lucide-react';
 import { AppHeader } from './app-header';
 
-export function AppSidebar({ children }: { children: React.ReactNode }) {
+function AppSidebarLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
+
+  const handleLinkClick = () => {
+    setOpenMobile(false);
+  };
 
   return (
-    <SidebarProvider>
+    <>
       <Sidebar>
         <SidebarHeader className="p-4">
           <div className="flex items-center gap-2">
@@ -44,7 +50,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
                 isActive={pathname === '/'}
                 tooltip="Dashboard"
               >
-                <Link href="/">
+                <Link href="/" onClick={handleLinkClick}>
                   <LayoutDashboard />
                   <span>Dashboard</span>
                 </Link>
@@ -56,7 +62,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
                 isActive={pathname.startsWith('/orders')}
                 tooltip="Orders"
               >
-                <Link href="/orders">
+                <Link href="/orders" onClick={handleLinkClick}>
                   <ClipboardList />
                   <span>Orders</span>
                 </Link>
@@ -68,7 +74,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
                 isActive={pathname.startsWith('/customers')}
                 tooltip="Customers"
               >
-                <Link href="/customers">
+                <Link href="/customers" onClick={handleLinkClick}>
                   <Users />
                   <span>Customers</span>
                 </Link>
@@ -83,6 +89,14 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
             <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
       </SidebarInset>
+    </>
+  )
+}
+
+export function AppSidebar({ children }: { children: React.ReactNode }) {
+  return (
+    <SidebarProvider>
+      <AppSidebarLayout>{children}</AppSidebarLayout>
     </SidebarProvider>
   );
 }
