@@ -87,6 +87,9 @@ function AppSidebarLayout({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col h-screen">
             <AppHeader />
             <main className="flex-1 overflow-y-auto">{children}</main>
+            <footer className="p-4 text-center text-xs text-muted-foreground">
+                Powered by Manuja Niroshan
+            </footer>
         </div>
       </SidebarInset>
     </>
