@@ -248,7 +248,7 @@ export default function OrdersPage() {
             </DialogDescription>
           </DialogHeader>
           {orderToView && (
-             <div className="grid gap-3 py-4 text-sm overflow-y-auto max-h-[70vh]">
+             <div className="grid gap-3 py-4 text-sm">
                 <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
                   <Label className="text-right text-muted-foreground">Order ID</Label>
                   <span>{orderToView.orderId}</span>
