@@ -8,14 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import {
   DollarSign,
@@ -24,6 +16,8 @@ import {
   PackageCheck,
   Calendar as CalendarIcon,
   Loader2,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
 import type { Order, Customer } from '@/lib/types';
 import { format } from 'date-fns';
@@ -96,8 +90,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
       <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -131,10 +126,8 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Payments
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Payments</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -145,10 +138,8 @@ export default function DashboardPage() {
         </Card>
          <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Outstanding Balance
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Outstanding Balance</CardTitle>
+            <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -166,41 +157,25 @@ export default function DashboardPage() {
             Upcoming Deliveries
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Delivery Date</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {upcomingDeliveries.length > 0 ? (
-                upcomingDeliveries.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.orderId}</TableCell>
-                    <TableCell>
-                      {customers[order.customerId]?.fullName || 'Unknown Customer'}
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(order.deliveryDate), 'PPP p')}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{order.status}</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center h-24">
-                    No upcoming deliveries.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+        <CardContent className="space-y-4">
+            {upcomingDeliveries.length > 0 ? (
+            upcomingDeliveries.map((order) => (
+                <div key={order.id} className="flex items-center p-2 rounded-md transition-colors hover:bg-muted/30">
+                    <div className="p-3 mr-4 rounded-full bg-accent">
+                        <CalendarIcon className="w-5 h-5 text-accent-foreground" />
+                    </div>
+                    <div className="flex-1 grid gap-0.5">
+                        <p className="font-medium">{customers[order.customerId]?.fullName || 'Unknown Customer'}</p>
+                        <p className="text-sm text-muted-foreground">{order.orderId} - {format(new Date(order.deliveryDate), 'PPP p')}</p>
+                    </div>
+                    <Badge variant="outline">{order.status}</Badge>
+                </div>
+            ))
+            ) : (
+                <div className="text-center text-muted-foreground h-24 flex items-center justify-center">
+                    <p>No upcoming deliveries.</p>
+                </div>
+            )}
         </CardContent>
       </Card>
     </div>

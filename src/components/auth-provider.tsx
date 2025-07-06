@@ -6,7 +6,6 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { usePathname, useRouter } from 'next/navigation';
 import { AppSidebar } from './app-sidebar';
-import { Skeleton } from './ui/skeleton';
 import { Flower2 } from 'lucide-react';
 
 interface AuthContextType {

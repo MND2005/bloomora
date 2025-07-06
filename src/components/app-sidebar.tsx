@@ -1,19 +1,17 @@
 
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   SidebarProvider,
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
-  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { Button } from './ui/button';
 import {
@@ -22,28 +20,11 @@ import {
   Users,
   Flower2,
   PanelLeft,
-  LogOut,
 } from 'lucide-react';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { useToast } from '@/hooks/use-toast';
+import { AppHeader } from './app-header';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { toast } = useToast();
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-      toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({ title: 'Logout Failed', description: 'Could not log you out. Please try again.', variant: 'destructive'});
-    }
-  };
-
 
   return (
     <SidebarProvider>
@@ -97,17 +78,6 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter>
-            <SidebarSeparator />
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
-                        <LogOut />
-                        <span>Logout</span>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
@@ -123,7 +93,10 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
             </SidebarMenuButton>
           </Button>
         </header>
-        <main className="flex-1 overflow-auto">{children}</main>
+        <div className="flex flex-col">
+            <AppHeader />
+            <main className="flex-1 overflow-auto">{children}</main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

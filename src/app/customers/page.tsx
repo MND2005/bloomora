@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye, User } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,14 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +34,7 @@ import {
 import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
 
 export default function CustomersPage() {
   const { toast } = useToast();
@@ -130,61 +123,52 @@ export default function CustomersPage() {
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Full Name</TableHead>
-              <TableHead>Contact Number</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-                <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
-                       <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-                    </TableCell>
-                </TableRow>
-            ) : customers.length === 0 ? (
-                 <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
-                        No customers found. Add one to get started.
-                    </TableCell>
-                </TableRow>
-            ) : (
-              customers.map((customer) => (
-                <TableRow key={customer.id}>
-                  <TableCell className="font-medium">{customer.fullName}</TableCell>
-                  <TableCell>{customer.phone}</TableCell>
-                  <TableCell>{customer.email || 'N/A'}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewDetails(customer)}>
-                          <Eye className="mr-2 h-4 w-4" /> View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(customer)}>
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openDeleteDialog(customer)} className="text-destructive focus:text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+      <div className="space-y-4">
+        {loading ? (
+             <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+             </div>
+        ) : customers.length === 0 ? (
+             <div className="text-center py-24 text-muted-foreground">
+                <User className="mx-auto h-12 w-12 mb-4" />
+                <h3 className="text-lg font-semibold">No customers found</h3>
+                <p className="text-sm">Add a new customer to get started.</p>
+            </div>
+        ) : (
+          customers.map((customer) => (
+            <Card key={customer.id} className="p-4 flex items-center justify-between transition-colors hover:bg-muted/20">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-full bg-accent">
+                    <User className="w-5 h-5 text-accent-foreground" />
+                </div>
+                <div className="grid gap-0.5">
+                    <p className="font-semibold">{customer.fullName}</p>
+                    <p className="text-sm text-muted-foreground">{customer.phone} {customer.email && `• ${customer.email}`}</p>
+                </div>
+              </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleViewDetails(customer)}>
+                    <Eye className="mr-2 h-4 w-4" /> View
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleEdit(customer)}>
+                    <Pencil className="mr-2 h-4 w-4" /> Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openDeleteDialog(customer)} className="text-destructive focus:text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Card>
+          ))
+        )}
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>

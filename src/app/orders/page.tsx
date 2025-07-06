@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye, Package } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,14 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +36,7 @@ import { format } from 'date-fns';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
 
 
 export default function OrdersPage() {
@@ -68,6 +61,8 @@ export default function OrdersPage() {
 
     const unsubOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
       const ordersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Order));
+      // Sort orders by most recent first
+      ordersData.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
       setOrders(ordersData);
       if (customers.length > 0) setLoading(false);
     }, (error) => {
@@ -174,69 +169,57 @@ export default function OrdersPage() {
         </p>
       )}
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Delivery Date</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-             {loading ? (
-                <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                       <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-                    </TableCell>
-                </TableRow>
-            ) : orders.length === 0 ? (
-                 <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                        No orders found. Add one to get started.
-                    </TableCell>
-                </TableRow>
-            ) : (
-                orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.orderId}</TableCell>
-                    <TableCell>{customerMap[order.customerId] || 'Unknown'}</TableCell>
-                    <TableCell>{format(new Date(order.deliveryDate), 'PP')}</TableCell>
-                    <TableCell>${order.totalValue.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(order.status)}>
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                           <DropdownMenuItem onClick={() => handleViewDetails(order)}>
-                            <Eye className="mr-2 h-4 w-4" /> View
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(order)}>
-                            <Pencil className="mr-2 h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                           <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-            )}
-          </TableBody>
-        </Table>
+      <div className="space-y-4">
+          {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+          ) : orders.length === 0 ? (
+              <div className="text-center py-24 text-muted-foreground">
+                  <Package className="mx-auto h-12 w-12 mb-4" />
+                  <h3 className="text-lg font-semibold">No orders found</h3>
+                  <p className="text-sm">Create a new order to get started.</p>
+              </div>
+          ) : (
+              orders.map((order) => (
+                <Card key={order.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors hover:bg-muted/20">
+                    <div className="flex items-center gap-4 flex-1">
+                        <div className="p-3 rounded-full bg-accent">
+                            <Package className="w-5 h-5 text-accent-foreground" />
+                        </div>
+                        <div className="grid gap-0.5 flex-1">
+                            <p className="font-semibold">{order.orderId} - <span className="font-normal">{customerMap[order.customerId] || 'Unknown'}</span></p>
+                            <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4 sm:ml-auto">
+                        <p className="font-semibold text-lg">${order.totalValue.toFixed(2)}</p>
+                         <Badge variant={getStatusBadgeVariant(order.status)} className="h-6">
+                            {order.status}
+                        </Badge>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewDetails(order)}>
+                                <Eye className="mr-2 h-4 w-4" /> View
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEdit(order)}>
+                                <Pencil className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </Card>
+              ))
+          )}
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
