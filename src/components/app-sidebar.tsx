@@ -31,7 +31,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <Flower2 className="w-8 h-8 text-primary" />
             <div className="flex flex-col">
-              <h2 className="text-lg font-headline font-semibold">PetalTrack</h2>
+              <h2 className="text-lg font-headline font-semibold">Bloomora</h2>
               <p className="text-xs text-muted-foreground">Order Management</p>
             </div>
           </div>

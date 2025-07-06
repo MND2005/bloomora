@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/components/auth-provider';
 
 export const metadata: Metadata = {
-  title: 'PetalTrack',
+  title: 'Bloomora',
   description: 'Flower Business Order Management System',
 };
 

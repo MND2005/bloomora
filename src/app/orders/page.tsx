@@ -96,7 +96,7 @@ export default function OrdersPage() {
       } else {
         const newOrderData = {
           ...orderData,
-          orderId: `PT-${Date.now().toString().slice(-4)}`,
+          orderId: `BL-${Date.now().toString().slice(-4)}`,
           orderDate: new Date().toISOString(),
         };
         await addDoc(collection(db, 'orders'), newOrderData);

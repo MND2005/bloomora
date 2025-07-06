@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-center h-screen w-full">
             <div className="flex flex-col items-center gap-4 animate-pulse">
                 <Flower2 className="w-12 h-12 text-primary" />
-                <p className="text-muted-foreground">Loading PetalTrack...</p>
+                <p className="text-muted-foreground">Loading Bloomora...</p>
             </div>
         </div>
      );
