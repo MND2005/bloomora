@@ -158,7 +158,7 @@ export default function CustomersPage() {
                 <TableRow key={customer.id}>
                   <TableCell className="font-medium">{customer.fullName}</TableCell>
                   <TableCell>{customer.phone}</TableCell>
-                  <TableCell>{customer.email}</TableCell>
+                  <TableCell>{customer.email || 'N/A'}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -223,7 +223,7 @@ export default function CustomersPage() {
               </div>
               <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
                 <Label className="text-right text-muted-foreground">Email</Label>
-                <span>{customerToView.email}</span>
+                <span>{customerToView.email || 'N/A'}</span>
               </div>
               <div className="grid grid-cols-[120px_1fr] items-start gap-x-4">
                 <Label className="text-right text-muted-foreground mt-1">Address</Label>

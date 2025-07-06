@@ -2,9 +2,9 @@ export type Customer = {
   id: string;
   fullName: string;
   phone: string;
-  email: string;
+  email?: string;
   address: string;
-  preferences: string;
+  preferences?: string;
 };
 
 export type OrderStatus = 'Processing' | 'Advance Taken' | 'Completed';

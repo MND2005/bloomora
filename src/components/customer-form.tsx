@@ -21,7 +21,7 @@ import { useEffect } from 'react';
 const formSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
   phone: z.string().min(10, { message: 'Phone number must be at least 10 digits.' }),
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  email: z.string().email({ message: 'Please enter a valid email.' }).optional().or(z.literal('')),
   address: z.string().min(5, { message: 'Address must be at least 5 characters.' }),
   preferences: z.string().optional(),
 });
@@ -98,7 +98,7 @@ export function CustomerForm({ customer, onSubmit, onCancel }: CustomerFormProps
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
+              <FormLabel>Email Address (Optional)</FormLabel>
               <FormControl>
                 <Input placeholder="john.doe@example.com" {...field} />
               </FormControl>
@@ -124,7 +124,7 @@ export function CustomerForm({ customer, onSubmit, onCancel }: CustomerFormProps
           name="preferences"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Preferences / Notes</FormLabel>
+              <FormLabel>Preferences / Notes (Optional)</FormLabel>
               <FormControl>
                 <Textarea placeholder="Loves tulips, allergic to pollen..." {...field} />
               </FormControl>
