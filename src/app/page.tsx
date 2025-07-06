@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [ordersToShow, setOrdersToShow] = useState<Order[]>([]);
   const [dialogTitle, setDialogTitle] = useState('');
+  const [dialogDescription, setDialogDescription] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -98,9 +99,31 @@ export default function DashboardPage() {
     const filteredOrders = orders.filter(order => order.status === status);
     setOrdersToShow(filteredOrders);
     setDialogTitle(`${status} Orders`);
+    setDialogDescription(`Showing all orders with the status "${status}".`);
     setIsStatusDialogOpen(true);
   };
   
+  const handleFinancialCardClick = (type: 'totalPayments' | 'outstandingBalance') => {
+    let filteredOrders: Order[] = [];
+    let title = '';
+    let description = '';
+
+    if (type === 'totalPayments') {
+        filteredOrders = orders.filter(order => order.status === 'Completed' || (order.status === 'Advance Taken' && order.advanceAmount));
+        title = 'Orders Contributing to Total Payments';
+        description = 'These orders have received payments (full or partial).';
+    } else if (type === 'outstandingBalance') {
+        filteredOrders = orders.filter(order => order.status === 'COD' || (order.status === 'Advance Taken' && order.totalValue > (order.advanceAmount || 0)));
+        title = 'Orders with Outstanding Balance';
+        description = 'These orders have pending payments to be collected.';
+    }
+    
+    setOrdersToShow(filteredOrders);
+    setDialogTitle(title);
+    setDialogDescription(description);
+    setIsStatusDialogOpen(true);
+  };
+
   const getStatusBadgeVariant = (status: Order['status']) => {
     switch (status) {
       case 'Completed':
@@ -127,7 +150,7 @@ export default function DashboardPage() {
       <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
       
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <Card className="aspect-square sm:aspect-auto flex flex-col justify-center">
+        <Card onClick={() => handleFinancialCardClick('totalPayments')} className="aspect-square sm:aspect-auto flex flex-col justify-center cursor-pointer hover:bg-accent transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Payments</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -139,7 +162,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">Total revenue collected.</p>
           </CardContent>
         </Card>
-         <Card className="aspect-square sm:aspect-auto flex flex-col justify-center">
+         <Card onClick={() => handleFinancialCardClick('outstandingBalance')} className="aspect-square sm:aspect-auto flex flex-col justify-center cursor-pointer hover:bg-accent transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Outstanding Balance</CardTitle>
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
@@ -219,7 +242,7 @@ export default function DashboardPage() {
           <DialogHeader>
             <DialogTitle>{dialogTitle}</DialogTitle>
             <DialogDescription>
-              Showing all orders with the status "{dialogTitle.replace(' Orders', '')}".
+              {dialogDescription}
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto -mx-6 px-6">
@@ -247,7 +270,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="text-center py-16 text-muted-foreground">
                   <Package className="mx-auto h-12 w-12 mb-4" />
-                  <p>No orders found with this status.</p>
+                  <p>No orders found for this category.</p>
                 </div>
               )}
             </div>
