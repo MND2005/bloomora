@@ -94,12 +94,22 @@ export function OrderForm({ order, customers, onSubmit, onCancel }: OrderFormPro
   const status = form.watch('status');
 
   const handleSubmit = (values: OrderFormValues) => {
-    const orderData = {
-        ...values,
-        deliveryDate: values.deliveryDate.toISOString(),
-        advanceAmount: values.status === 'Advance Taken' ? values.advanceAmount : undefined,
+    // Explicitly construct the object to send to Firestore
+    // to avoid sending `undefined` for `advanceAmount`.
+    const dataToSubmit: any = {
+      customerId: values.customerId,
+      products: values.products,
+      deliveryDate: values.deliveryDate.toISOString(),
+      totalValue: values.totalValue,
+      status: values.status,
+      specialInstructions: values.specialInstructions || '',
     };
-    onSubmit(orderData);
+
+    if (values.status === 'Advance Taken') {
+      dataToSubmit.advanceAmount = values.advanceAmount;
+    }
+    
+    onSubmit(dataToSubmit);
   };
 
   return (
