@@ -105,7 +105,7 @@ export function OrderForm({ order, customers, onSubmit, onCancel }: OrderFormPro
       specialInstructions: values.specialInstructions || '',
     };
 
-    if (values.status === 'Advance Taken') {
+    if (values.status === 'Advance Taken' && values.advanceAmount) {
       dataToSubmit.advanceAmount = values.advanceAmount;
     }
     
@@ -195,9 +195,9 @@ export function OrderForm({ order, customers, onSubmit, onCancel }: OrderFormPro
           name="totalValue"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Total Order Value ($)</FormLabel>
+              <FormLabel>Total Order Value (LKR)</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" placeholder="99.99" {...field} />
+                <Input type="number" step="0.01" placeholder="5000.00" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -231,9 +231,9 @@ export function OrderForm({ order, customers, onSubmit, onCancel }: OrderFormPro
             name="advanceAmount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Advance Amount Taken ($)</FormLabel>
+                <FormLabel>Advance Amount Taken (LKR)</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" placeholder="50.00" {...field} />
+                  <Input type="number" step="0.01" placeholder="2000.00" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -101,7 +101,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${stats.totalPayments.toFixed(2)}
+              LKR {stats.totalPayments.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">Total revenue collected.</p>
           </CardContent>
@@ -113,7 +113,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${stats.outstandingBalance.toFixed(2)}
+              LKR {stats.outstandingBalance.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">Pending payments to be collected.</p>
           </CardContent>

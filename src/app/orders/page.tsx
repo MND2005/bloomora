@@ -193,7 +193,7 @@ export default function OrdersPage() {
                         </div>
                     </div>
                     <div className="flex items-center gap-4 sm:ml-auto w-full sm:w-auto justify-end">
-                        <p className="font-semibold text-lg mr-auto sm:mr-0">${order.totalValue.toFixed(2)}</p>
+                        <p className="font-semibold text-lg mr-auto sm:mr-0">LKR {order.totalValue.toFixed(2)}</p>
                          <Badge variant={getStatusBadgeVariant(order.status)} className="h-6">
                             {order.status}
                         </Badge>
@@ -275,7 +275,7 @@ export default function OrdersPage() {
                 </div>
                 <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
                   <Label className="text-right text-muted-foreground">Total Value</Label>
-                  <span className="font-semibold">${orderToView.totalValue.toFixed(2)}</span>
+                  <span className="font-semibold">LKR {orderToView.totalValue.toFixed(2)}</span>
                 </div>
                  <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
                   <Label className="text-right text-muted-foreground">Status</Label>
@@ -284,7 +284,7 @@ export default function OrdersPage() {
                 {orderToView.status === 'Advance Taken' && (
                     <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
                         <Label className="text-right text-muted-foreground">Advance Paid</Label>
-                        <span className="font-semibold">${orderToView.advanceAmount?.toFixed(2) ?? '0.00'}</span>
+                        <span className="font-semibold">LKR {orderToView.advanceAmount?.toFixed(2) ?? '0.00'}</span>
                     </div>
                 )}
             </div>
