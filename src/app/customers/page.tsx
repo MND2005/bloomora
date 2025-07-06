@@ -116,7 +116,7 @@ export default function CustomersPage() {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between">
+      <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Customers</h2>
         <Button onClick={() => { setEditingCustomer(null); setIsFormOpen(true); }}>
           <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
@@ -136,7 +136,7 @@ export default function CustomersPage() {
             </div>
         ) : (
           customers.map((customer) => (
-            <Card key={customer.id} className="p-4 flex items-center justify-between transition-colors hover:bg-muted/20">
+            <Card key={customer.id} className="p-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center justify-between transition-colors hover:bg-muted/20">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-full bg-accent">
                     <User className="w-5 h-5 text-accent-foreground" />
@@ -146,26 +146,27 @@ export default function CustomersPage() {
                     <p className="text-sm text-muted-foreground">{customer.phone} {customer.email && `• ${customer.email}`}</p>
                 </div>
               </div>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleViewDetails(customer)}>
-                    <Eye className="mr-2 h-4 w-4" /> View
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleEdit(customer)}>
-                    <Pencil className="mr-2 h-4 w-4" /> Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => openDeleteDialog(customer)} className="text-destructive focus:text-destructive">
-                    <Trash2 className="mr-2 h-4 w-4" /> Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="self-end sm:self-auto">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleViewDetails(customer)}>
+                        <Eye className="mr-2 h-4 w-4" /> View
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEdit(customer)}>
+                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openDeleteDialog(customer)} className="text-destructive focus:text-destructive">
+                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+              </div>
             </Card>
           ))
         )}
@@ -196,7 +197,7 @@ export default function CustomersPage() {
             </DialogDescription>
           </DialogHeader>
           {customerToView && (
-             <div className="grid gap-3 py-4 text-sm">
+             <div className="grid gap-3 py-4 text-sm overflow-y-auto max-h-[70vh]">
               <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
                 <Label className="text-right text-muted-foreground">Full Name</Label>
                 <span>{customerToView.fullName}</span>

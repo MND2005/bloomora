@@ -157,7 +157,7 @@ export default function OrdersPage() {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between">
+      <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Orders</h2>
         <Button onClick={() => { setEditingOrder(null); setIsFormOpen(true); }} disabled={customers.length === 0}>
           <PlusCircle className="mr-2 h-4 w-4" /> New Order
@@ -192,8 +192,8 @@ export default function OrdersPage() {
                             <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4 sm:ml-auto">
-                        <p className="font-semibold text-lg">${order.totalValue.toFixed(2)}</p>
+                    <div className="flex items-center gap-4 sm:ml-auto w-full sm:w-auto justify-end">
+                        <p className="font-semibold text-lg mr-auto sm:mr-0">${order.totalValue.toFixed(2)}</p>
                          <Badge variant={getStatusBadgeVariant(order.status)} className="h-6">
                             {order.status}
                         </Badge>
@@ -248,7 +248,7 @@ export default function OrdersPage() {
             </DialogDescription>
           </DialogHeader>
           {orderToView && (
-             <div className="grid gap-3 py-4 text-sm">
+             <div className="grid gap-3 py-4 text-sm overflow-y-auto max-h-[70vh]">
                 <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
                   <Label className="text-right text-muted-foreground">Order ID</Label>
                   <span>{orderToView.orderId}</span>

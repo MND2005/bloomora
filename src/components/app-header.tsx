@@ -16,12 +16,11 @@ import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from './auth-provider';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 export function AppHeader() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -35,11 +34,9 @@ export function AppHeader() {
   };
 
   return (
-    <div className="flex h-16 items-center border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 sticky top-0 z-30">
-        <div className="flex-1">
-          {/* Mobile nav trigger is in app-sidebar */}
-        </div>
-        <div className="flex flex-1 items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+    <header className="flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 sticky top-0 z-30">
+        <SidebarTrigger className="md:hidden" />
+        <div className="flex w-full items-center gap-4">
           <form className="ml-auto flex-1 sm:flex-initial">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -74,6 +71,6 @@ export function AppHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
+      </header>
   )
 }

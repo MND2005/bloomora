@@ -13,13 +13,11 @@ import {
   SidebarMenuButton,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { Button } from './ui/button';
 import {
   LayoutDashboard,
   ClipboardList,
   Users,
   Flower2,
-  PanelLeft,
 } from 'lucide-react';
 import { AppHeader } from './app-header';
 
@@ -80,22 +78,9 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
-          <Button
-            size="icon"
-            variant="outline"
-            className="md:hidden"
-            asChild
-          >
-            <SidebarMenuButton>
-              <PanelLeft className="h-5 w-5" />
-              <span className="sr-only">Toggle Menu</span>
-            </SidebarMenuButton>
-          </Button>
-        </header>
-        <div className="flex flex-col">
+        <div className="flex flex-col h-screen">
             <AppHeader />
-            <main className="flex-1 overflow-auto">{children}</main>
+            <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
       </SidebarInset>
     </SidebarProvider>
