@@ -35,9 +35,22 @@ export default function LoginPage() {
       router.push('/');
     } catch (error: any) {
       console.error('Login error:', error);
+      let description = 'An unexpected error occurred.';
+      if (error.code === 'auth/invalid-api-key') {
+        description =
+          'Firebase API key is not valid. Please configure your environment variables in .env.local.';
+      } else if (
+        error.code === 'auth/user-not-found' ||
+        error.code === 'auth/wrong-password' ||
+        error.code === 'auth/invalid-credential'
+      ) {
+        description = 'Invalid email or password.';
+      } else {
+        description = error.message;
+      }
       toast({
         title: 'Login Failed',
-        description: "Invalid email or password.",
+        description: description,
         variant: 'destructive',
       });
     } finally {

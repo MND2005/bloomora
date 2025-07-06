@@ -39,9 +39,14 @@ export default function RegisterPage() {
       router.push('/login');
     } catch (error: any) {
       console.error('Registration error:', error);
+      let description = error.message;
+      if (error.code === 'auth/invalid-api-key') {
+        description =
+          'Firebase API key is not valid. Please configure your environment variables in .env.local.';
+      }
       toast({
         title: 'Registration Failed',
-        description: error.message,
+        description: description,
         variant: 'destructive',
       });
     } finally {
