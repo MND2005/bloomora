@@ -259,62 +259,64 @@ export default function OrdersPage() {
             </DialogDescription>
           </DialogHeader>
           {orderToView && (
-             <div className="grid gap-3 py-4 text-sm">
-                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                  <Label className="text-right text-muted-foreground">Order ID</Label>
-                  <span>{orderToView.orderId}</span>
+             <div className="space-y-4 py-4 text-sm">
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right">Order ID</Label>
+                  <span className="break-words">{orderToView.orderId}</span>
                 </div>
-                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                  <Label className="text-right text-muted-foreground">Customer</Label>
-                  <span>{customerMap[orderToView.customerId] || 'Unknown'}</span>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right">Customer</Label>
+                  <span className="break-words">{customerMap[orderToView.customerId] || 'Unknown'}</span>
                 </div>
-                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                  <Label className="text-right text-muted-foreground">Order Date</Label>
-                  <span>{format(new Date(orderToView.orderDate), 'PPp')}</span>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right">Order Date</Label>
+                  <span className="break-words">{format(new Date(orderToView.orderDate), 'PPp')}</span>
                 </div>
-                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                  <Label className="text-right text-muted-foreground">Delivery Date</Label>
-                  <span>{format(new Date(orderToView.deliveryDate), 'PPp')}</span>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right">Delivery Date</Label>
+                  <span className="break-words">{format(new Date(orderToView.deliveryDate), 'PPp')}</span>
                 </div>
-                <div className="grid grid-cols-[150px_1fr] items-start gap-x-4">
-                  <Label className="text-right text-muted-foreground mt-1">Products Ordered</Label>
-                  <p className="leading-relaxed whitespace-pre-wrap">{orderToView.products}</p>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-start sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right sm:mt-1">Products Ordered</Label>
+                  <p className="leading-relaxed whitespace-pre-wrap break-words">{orderToView.products}</p>
                 </div>
-                 <div className="grid grid-cols-[150px_1fr] items-start gap-x-4">
-                  <Label className="text-right text-muted-foreground mt-1">Special Instructions</Label>
-                  <p className="leading-relaxed whitespace-pre-wrap">{orderToView.specialInstructions || 'N/A'}</p>
+                 <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-start sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right sm:mt-1">Special Instructions</Label>
+                  <p className="leading-relaxed whitespace-pre-wrap break-words">{orderToView.specialInstructions || 'N/A'}</p>
                 </div>
-                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                  <Label className="text-right text-muted-foreground">Total Value</Label>
-                  <span className="font-semibold">LKR {orderToView.totalValue.toFixed(2)}</span>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right">Total Value</Label>
+                  <span className="font-semibold break-words">LKR {orderToView.totalValue.toFixed(2)}</span>
                 </div>
-                 <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                  <Label className="text-right text-muted-foreground">Status</Label>
+                 <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right">Status</Label>
                   <Badge variant={getStatusBadgeVariant(orderToView.status)}>{orderToView.status}</Badge>
                 </div>
                 {orderToView.status === 'Advance Taken' && (
-                    <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                        <Label className="text-right text-muted-foreground">Advance Paid</Label>
-                        <span className="font-semibold">LKR {orderToView.advanceAmount?.toFixed(2) ?? '0.00'}</span>
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                        <Label className="text-muted-foreground sm:text-right">Advance Paid</Label>
+                        <span className="font-semibold break-words">LKR {orderToView.advanceAmount?.toFixed(2) ?? '0.00'}</span>
                     </div>
                 )}
-                <Separator className="my-2 col-span-2" />
-                <h4 className="font-semibold col-span-2 text-sm text-foreground">Action Centre</h4>
-                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                  <Label className="text-right text-muted-foreground">Last Updated</Label>
-                  <span>{orderToView.updatedAt ? format(new Date(orderToView.updatedAt), 'PPp') : 'N/A'}</span>
+
+                <Separator className="my-2" />
+                <h4 className="font-semibold text-sm text-foreground">Action Centre</h4>
+
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right">Last Updated</Label>
+                  <span className="break-words">{orderToView.updatedAt ? format(new Date(orderToView.updatedAt), 'PPp') : 'N/A'}</span>
                 </div>
-                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                  <Label className="text-right text-muted-foreground">Updated By</Label>
-                  <span>{orderToView.updatedBy || 'N/A'}</span>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right">Updated By</Label>
+                  <span className="break-words">{orderToView.updatedBy || 'N/A'}</span>
                 </div>
-                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                  <Label className="text-right text-muted-foreground">Created</Label>
-                  <span>{orderToView.createdAt ? format(new Date(orderToView.createdAt), 'PPp') : 'N/A'}</span>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right">Created</Label>
+                  <span className="break-words">{orderToView.createdAt ? format(new Date(orderToView.createdAt), 'PPp') : 'N/A'}</span>
                 </div>
-                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
-                  <Label className="text-right text-muted-foreground">Created By</Label>
-                  <span>{orderToView.createdBy || 'N/A'}</span>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:items-center sm:gap-x-4">
+                  <Label className="text-muted-foreground sm:text-right">Created By</Label>
+                  <span className="break-words">{orderToView.createdBy || 'N/A'}</span>
                 </div>
             </div>
           )}

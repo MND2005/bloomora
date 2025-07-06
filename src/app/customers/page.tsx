@@ -213,46 +213,47 @@ export default function CustomersPage() {
             </DialogDescription>
           </DialogHeader>
           {customerToView && (
-             <div className="grid gap-3 py-4 text-sm">
-              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
-                <Label className="text-right text-muted-foreground">Full Name</Label>
-                <span>{customerToView.fullName}</span>
-              </div>
-              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
-                <Label className="text-right text-muted-foreground">Contact</Label>
-                <span>{customerToView.phone}</span>
-              </div>
-              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
-                <Label className="text-right text-muted-foreground">Email</Label>
-                <span>{customerToView.email || 'N/A'}</span>
-              </div>
-              <div className="grid grid-cols-[120px_1fr] items-start gap-x-4">
-                <Label className="text-right text-muted-foreground mt-1">Address</Label>
-                <p className="leading-relaxed">{customerToView.address}</p>
-              </div>
-              <div className="grid grid-cols-[120px_1fr] items-start gap-x-4">
-                <Label className="text-right text-muted-foreground mt-1">Preferences</Label>
-                <p className="leading-relaxed">{customerToView.preferences || 'N/A'}</p>
-              </div>
-              <Separator className="my-2 col-span-2" />
-              <h4 className="font-semibold col-span-2 text-sm text-foreground">Action Centre</h4>
+             <div className="space-y-4 py-4 text-sm">
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                    <Label className="text-muted-foreground sm:text-right">Full Name</Label>
+                    <span className="break-words">{customerToView.fullName}</span>
+                </div>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                    <Label className="text-muted-foreground sm:text-right">Contact</Label>
+                    <span className="break-words">{customerToView.phone}</span>
+                </div>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                    <Label className="text-muted-foreground sm:text-right">Email</Label>
+                    <span className="break-words">{customerToView.email || 'N/A'}</span>
+                </div>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-start sm:gap-x-4">
+                    <Label className="text-muted-foreground sm:text-right sm:mt-1">Address</Label>
+                    <p className="leading-relaxed break-words">{customerToView.address}</p>
+                </div>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-start sm:gap-x-4">
+                    <Label className="text-muted-foreground sm:text-right sm:mt-1">Preferences</Label>
+                    <p className="leading-relaxed break-words">{customerToView.preferences || 'N/A'}</p>
+                </div>
 
-              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
-                <Label className="text-right text-muted-foreground">Last Updated</Label>
-                <span>{customerToView.updatedAt ? format(new Date(customerToView.updatedAt), 'PPp') : 'N/A'}</span>
-              </div>
-              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
-                <Label className="text-right text-muted-foreground">Updated By</Label>
-                <span>{customerToView.updatedBy || 'N/A'}</span>
-              </div>
-              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
-                <Label className="text-right text-muted-foreground">Created</Label>
-                <span>{customerToView.createdAt ? format(new Date(customerToView.createdAt), 'PPp') : 'N/A'}</span>
-              </div>
-              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
-                <Label className="text-right text-muted-foreground">Created By</Label>
-                <span>{customerToView.createdBy || 'N/A'}</span>
-              </div>
+                <Separator className="my-2" />
+                <h4 className="font-semibold text-sm text-foreground">Action Centre</h4>
+                
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                    <Label className="text-muted-foreground sm:text-right">Last Updated</Label>
+                    <span className="break-words">{customerToView.updatedAt ? format(new Date(customerToView.updatedAt), 'PPp') : 'N/A'}</span>
+                </div>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                    <Label className="text-muted-foreground sm:text-right">Updated By</Label>
+                    <span className="break-words">{customerToView.updatedBy || 'N/A'}</span>
+                </div>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                    <Label className="text-muted-foreground sm:text-right">Created</Label>
+                    <span className="break-words">{customerToView.createdAt ? format(new Date(customerToView.createdAt), 'PPp') : 'N/A'}</span>
+                </div>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                    <Label className="text-muted-foreground sm:text-right">Created By</Label>
+                    <span className="break-words">{customerToView.createdBy || 'N/A'}</span>
+                </div>
             </div>
           )}
           <DialogFooter>
