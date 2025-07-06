@@ -146,7 +146,7 @@ export default function OrdersPage() {
     switch (status) {
       case 'Completed':
         return 'default';
-      case 'Processing':
+      case 'COD':
         return 'secondary';
       case 'Advance Taken':
         return 'outline';

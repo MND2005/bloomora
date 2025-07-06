@@ -1,3 +1,4 @@
+
 export type Customer = {
   id: string;
   fullName: string;
@@ -7,7 +8,7 @@ export type Customer = {
   preferences?: string;
 };
 
-export type OrderStatus = 'Processing' | 'Advance Taken' | 'Completed';
+export type OrderStatus = 'COD' | 'Advance Taken' | 'Completed';
 
 export type Order = {
   id: string;

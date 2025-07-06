@@ -59,7 +59,7 @@ export default function DashboardPage() {
   }, []);
 
   const stats = {
-    processing: orders.filter((o) => o.status === 'Processing').length,
+    processing: orders.filter((o) => o.status === 'COD').length,
     advanceTaken: orders.filter((o) => o.status === 'Advance Taken').length,
     completed: orders.filter((o) => o.status === 'Completed').length,
     totalPayments: orders.reduce((acc, order) => {
@@ -69,7 +69,7 @@ export default function DashboardPage() {
       return acc;
     }, 0),
     outstandingBalance: orders.reduce((acc, order) => {
-      if (order.status === 'Processing') return acc + order.totalValue;
+      if (order.status === 'COD') return acc + order.totalValue;
       if (order.status === 'Advance Taken' && order.advanceAmount)
         return acc + (order.totalValue - order.advanceAmount);
       return acc;
@@ -120,12 +120,12 @@ export default function DashboardPage() {
         </Card>
         <Card className="aspect-square sm:aspect-auto flex flex-col justify-center">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Processing</CardTitle>
+            <CardTitle className="text-sm font-medium">COD</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.processing}</div>
-            <p className="text-xs text-muted-foreground">Orders currently in preparation.</p>
+            <p className="text-xs text-muted-foreground">Cash on Delivery orders.</p>
           </CardContent>
         </Card>
         <Card className="aspect-square sm:aspect-auto flex flex-col justify-center">

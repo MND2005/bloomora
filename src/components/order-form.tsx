@@ -35,7 +35,7 @@ const formSchema = z.object({
   products: z.string().min(3, { message: 'Product details must be at least 3 characters.' }),
   deliveryDate: z.date({ required_error: 'A delivery date is required.' }),
   totalValue: z.coerce.number().positive({ message: 'Total value must be a positive number.' }),
-  status: z.enum(['Processing', 'Advance Taken', 'Completed']),
+  status: z.enum(['COD', 'Advance Taken', 'Completed']),
   advanceAmount: z.coerce.number().optional(),
   specialInstructions: z.string().optional(),
 }).refine(data => {
@@ -65,7 +65,7 @@ export function OrderForm({ order, customers, onSubmit, onCancel }: OrderFormPro
       products: order?.products || '',
       deliveryDate: order ? new Date(order.deliveryDate) : new Date(),
       totalValue: order?.totalValue || 0,
-      status: order?.status || 'Processing',
+      status: order?.status || 'COD',
       advanceAmount: order?.advanceAmount || undefined,
       specialInstructions: order?.specialInstructions || '',
     },
@@ -83,7 +83,7 @@ export function OrderForm({ order, customers, onSubmit, onCancel }: OrderFormPro
           products: '',
           deliveryDate: new Date(),
           totalValue: 0,
-          status: 'Processing',
+          status: 'COD',
           advanceAmount: undefined,
           specialInstructions: '',
         });
@@ -216,7 +216,7 @@ export function OrderForm({ order, customers, onSubmit, onCancel }: OrderFormPro
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="Processing">Processing</SelectItem>
+                  <SelectItem value="COD">COD</SelectItem>
                   <SelectItem value="Advance Taken">Advance Taken</SelectItem>
                   <SelectItem value="Completed">Completed</SelectItem>
                 </SelectContent>
