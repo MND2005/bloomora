@@ -85,7 +85,7 @@ body {
     @apply bg-background text-foreground;
   }
   .dark body {
-    background-image: linear-gradient(to bottom right, hsl(var(--background)), hsl(240, 15%, 9%));
+    background-image: linear-gradient(to bottom right, hsl(340, 60%, 25%), hsl(240, 10%, 4%), hsl(145, 60%, 25%));
     background-attachment: fixed;
   }
 }
