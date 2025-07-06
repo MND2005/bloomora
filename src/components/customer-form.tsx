@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -15,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { Customer } from '@/lib/types';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
@@ -24,30 +26,42 @@ const formSchema = z.object({
   preferences: z.string().optional(),
 });
 
+type CustomerFormValues = z.infer<typeof formSchema>;
+
 type CustomerFormProps = {
   customer: Customer | null;
-  onSubmit: (data: Customer) => void;
+  onSubmit: (data: Omit<Customer, 'id'>) => void;
   onCancel: () => void;
 };
 
 export function CustomerForm({ customer, onSubmit, onCancel }: CustomerFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<CustomerFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      fullName: customer?.fullName || '',
-      phone: customer?.phone || '',
-      email: customer?.email || '',
-      address: customer?.address || '',
-      preferences: customer?.preferences || '',
+    defaultValues: customer || {
+      fullName: '',
+      phone: '',
+      email: '',
+      address: '',
+      preferences: '',
     },
   });
+  
+  useEffect(() => {
+    if (customer) {
+      form.reset(customer);
+    } else {
+      form.reset({
+        fullName: '',
+        phone: '',
+        email: '',
+        address: '',
+        preferences: '',
+      });
+    }
+  }, [customer, form]);
 
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    const customerData = {
-        ...values,
-        id: customer?.id || '', // Keep existing id or it will be set by parent
-    };
-    onSubmit(customerData);
+  const handleSubmit = (values: CustomerFormValues) => {
+    onSubmit(values);
   };
 
   return (

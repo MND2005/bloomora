@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -7,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,11 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Order, OrderStatus } from '@/lib/types';
-import { customers } from '@/lib/data';
+import type { Order, Customer } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   customerId: z.string().nonempty({ message: 'A customer must be selected.' }),
@@ -48,19 +48,22 @@ const formSchema = z.object({
     path: ['advanceAmount'],
 });
 
+type OrderFormValues = z.infer<typeof formSchema>;
+
 type OrderFormProps = {
   order: Order | null;
-  onSubmit: (data: Order) => void;
+  customers: Customer[];
+  onSubmit: (data: Omit<Order, 'id' | 'orderId' | 'orderDate'>) => void;
   onCancel: () => void;
 };
 
-export function OrderForm({ order, onSubmit, onCancel }: OrderFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
+export function OrderForm({ order, customers, onSubmit, onCancel }: OrderFormProps) {
+  const form = useForm<OrderFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       customerId: order?.customerId || '',
       products: order?.products || '',
-      deliveryDate: order ? new Date(order.deliveryDate) : undefined,
+      deliveryDate: order ? new Date(order.deliveryDate) : new Date(),
       totalValue: order?.totalValue || 0,
       status: order?.status || 'Processing',
       advanceAmount: order?.advanceAmount || undefined,
@@ -68,13 +71,30 @@ export function OrderForm({ order, onSubmit, onCancel }: OrderFormProps) {
     },
   });
 
+  useEffect(() => {
+    if (order) {
+        form.reset({
+            ...order,
+            deliveryDate: new Date(order.deliveryDate),
+        });
+    } else {
+        form.reset({
+          customerId: '',
+          products: '',
+          deliveryDate: new Date(),
+          totalValue: 0,
+          status: 'Processing',
+          advanceAmount: undefined,
+          specialInstructions: '',
+        });
+    }
+  }, [order, form]);
+
+
   const status = form.watch('status');
 
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    const orderData: Order = {
-        id: order?.id || '',
-        orderId: order?.orderId || '',
-        orderDate: order?.orderDate || new Date().toISOString(),
+  const handleSubmit = (values: OrderFormValues) => {
+    const orderData = {
         ...values,
         deliveryDate: values.deliveryDate.toISOString(),
         advanceAmount: values.status === 'Advance Taken' ? values.advanceAmount : undefined,
@@ -152,7 +172,6 @@ export function OrderForm({ order, onSubmit, onCancel }: OrderFormProps) {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) => date < new Date('1900-01-01')}
                     initialFocus
                   />
                 </PopoverContent>

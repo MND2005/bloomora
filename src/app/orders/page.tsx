@@ -1,8 +1,9 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -35,15 +36,19 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import type { Order } from '@/lib/types';
-import { initialOrders, customers } from '@/lib/data';
+import type { Order, Customer } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { OrderForm } from '@/components/order-form';
 import { format } from 'date-fns';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
+
 
 export default function OrdersPage() {
   const { toast } = useToast();
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -54,23 +59,55 @@ export default function OrdersPage() {
     return acc;
   }, {} as Record<string, string>);
 
-  const handleFormSubmit = (order: Order) => {
-    if (editingOrder) {
-      // Edit
-      setOrders(orders.map((o) => (o.id === order.id ? order : o)));
-      toast({ title: 'Order Updated', description: `Order ${order.orderId} has been updated.` });
-    } else {
-      // Add
-      const newOrder = {
-        ...order,
-        id: `o${orders.length + 1}`,
-        orderId: `PT-${1001 + orders.length}`,
-        orderDate: new Date().toISOString(),
-      };
-      setOrders([...orders, newOrder]);
-      toast({ title: 'Order Added', description: `Order ${newOrder.orderId} has been added.` });
+  useEffect(() => {
+    setLoading(true);
+
+    const unsubOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
+      const ordersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Order));
+      setOrders(ordersData);
+      if (customers.length > 0) setLoading(false);
+    }, (error) => {
+      console.error("Error fetching orders:", error);
+      toast({ title: 'Error', description: 'Failed to fetch orders.', variant: 'destructive'});
+    });
+    
+    const unsubCustomers = onSnapshot(collection(db, 'customers'), (snapshot) => {
+      const customersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Customer));
+      setCustomers(customersData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching customers:", error);
+      toast({ title: 'Error', description: 'Failed to fetch customers.', variant: 'destructive'});
+      setLoading(false);
+    });
+
+    return () => {
+      unsubOrders();
+      unsubCustomers();
+    };
+  }, [toast, customers.length]);
+
+  const handleFormSubmit = async (orderData: Omit<Order, 'id' | 'orderId' | 'orderDate'>) => {
+    try {
+      if (editingOrder) {
+        const orderDoc = doc(db, 'orders', editingOrder.id);
+        const { id, orderId, orderDate, ...updateData } = { ...editingOrder, ...orderData };
+        await updateDoc(orderDoc, updateData);
+        toast({ title: 'Order Updated', description: `Order ${editingOrder.orderId} has been updated.` });
+      } else {
+        const newOrderData = {
+          ...orderData,
+          orderId: `PT-${Date.now().toString().slice(-4)}`,
+          orderDate: new Date().toISOString(),
+        };
+        await addDoc(collection(db, 'orders'), newOrderData);
+        toast({ title: 'Order Added', description: `Order ${newOrderData.orderId} has been added.` });
+      }
+      handleCloseForm();
+    } catch(e) {
+        console.error("Error saving order:", e);
+        toast({ title: 'Error', description: 'Failed to save order.', variant: 'destructive'});
     }
-    handleCloseForm();
   };
 
   const handleEdit = (order: Order) => {
@@ -78,12 +115,17 @@ export default function OrdersPage() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!orderToDelete) return;
-    setOrders(orders.filter((o) => o.id !== orderToDelete.id));
-    toast({ title: 'Order Deleted', description: `Order ${orderToDelete.orderId} has been deleted.`, variant: 'destructive' });
-    setIsDeleteDialogOpen(false);
-    setOrderToDelete(null);
+    try {
+        await deleteDoc(doc(db, 'orders', orderToDelete.id));
+        toast({ title: 'Order Deleted', description: `Order ${orderToDelete.orderId} has been deleted.`, variant: 'destructive' });
+        setIsDeleteDialogOpen(false);
+        setOrderToDelete(null);
+    } catch(e) {
+        console.error("Error deleting order:", e);
+        toast({ title: 'Error', description: 'Failed to delete order.', variant: 'destructive'});
+    }
   };
   
   const openDeleteDialog = (order: Order) => {
@@ -109,15 +151,19 @@ export default function OrdersPage() {
     }
   };
 
-
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Orders</h2>
-        <Button onClick={() => setIsFormOpen(true)}>
+        <Button onClick={() => { setEditingOrder(null); setIsFormOpen(true); }} disabled={customers.length === 0}>
           <PlusCircle className="mr-2 h-4 w-4" /> New Order
         </Button>
       </div>
+      {customers.length === 0 && !loading && (
+        <p className="text-sm text-muted-foreground text-center py-4">
+            Please add a customer first before creating an order.
+        </p>
+      )}
 
       <div className="rounded-md border">
         <Table>
@@ -132,37 +178,51 @@ export default function OrdersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-medium">{order.orderId}</TableCell>
-                <TableCell>{customerMap[order.customerId]}</TableCell>
-                <TableCell>{format(new Date(order.deliveryDate), 'PP')}</TableCell>
-                <TableCell>${order.totalValue.toFixed(2)}</TableCell>
-                <TableCell>
-                  <Badge variant={getStatusBadgeVariant(order.status)}>
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(order)}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                      </DropdownMenuItem>
-                       <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+             {loading ? (
+                <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                       <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+                    </TableCell>
+                </TableRow>
+            ) : orders.length === 0 ? (
+                 <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                        No orders found. Add one to get started.
+                    </TableCell>
+                </TableRow>
+            ) : (
+                orders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">{order.orderId}</TableCell>
+                    <TableCell>{customerMap[order.customerId] || 'Unknown'}</TableCell>
+                    <TableCell>{format(new Date(order.deliveryDate), 'PP')}</TableCell>
+                    <TableCell>${order.totalValue.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusBadgeVariant(order.status)}>
+                        {order.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(order)}>
+                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -177,6 +237,7 @@ export default function OrdersPage() {
           </DialogHeader>
           <OrderForm
             order={editingOrder}
+            customers={customers}
             onSubmit={handleFormSubmit}
             onCancel={handleCloseForm}
           />

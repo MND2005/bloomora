@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -22,23 +23,46 @@ import {
   Clock,
   PackageCheck,
   Calendar as CalendarIcon,
+  Loader2,
 } from 'lucide-react';
-import {
-  initialOrders,
-  initialCustomers,
-  customers as customerData,
-} from '@/lib/data';
 import type { Order, Customer } from '@/lib/types';
 import { format } from 'date-fns';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 export default function DashboardPage() {
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [customers, setCustomers] = useState<Record<string, Customer>>(
-    customerData.reduce((acc, customer) => {
-      acc[customer.id] = customer;
-      return acc;
-    }, {} as Record<string, Customer>)
-  );
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [customers, setCustomers] = useState<Record<string, Customer>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+
+    const unsubOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
+      const ordersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Order));
+      setOrders(ordersData);
+    }, (error) => {
+      console.error("Error fetching orders:", error);
+      setLoading(false);
+    });
+
+    const unsubCustomers = onSnapshot(collection(db, 'customers'), (snapshot) => {
+      const customersData = snapshot.docs.reduce((acc, doc) => {
+        acc[doc.id] = { ...doc.data(), id: doc.id } as Customer;
+        return acc;
+      }, {} as Record<string, Customer>);
+      setCustomers(customersData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching customers:", error);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubOrders();
+      unsubCustomers();
+    };
+  }, []);
 
   const stats = {
     processing: orders.filter((o) => o.status === 'Processing').length,
@@ -62,6 +86,14 @@ export default function DashboardPage() {
     .filter((o) => o.status !== 'Completed' && new Date(o.deliveryDate) >= new Date())
     .sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime())
     .slice(0, 5);
+    
+  if (loading) {
+    return (
+        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6 flex items-center justify-center h-[calc(100vh-8rem)]">
+             <Loader2 className="mx-auto h-12 w-12 animate-spin text-muted-foreground" />
+        </div>
+    )
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -150,7 +182,7 @@ export default function DashboardPage() {
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">{order.orderId}</TableCell>
                     <TableCell>
-                      {customers[order.customerId]?.fullName}
+                      {customers[order.customerId]?.fullName || 'Unknown Customer'}
                     </TableCell>
                     <TableCell>
                       {format(new Date(order.deliveryDate), 'PPP p')}
@@ -162,7 +194,7 @@ export default function DashboardPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">
+                  <TableCell colSpan={4} className="text-center h-24">
                     No upcoming deliveries.
                   </TableCell>
                 </TableRow>

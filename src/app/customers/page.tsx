@@ -1,8 +1,9 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { Customer } from '@/lib/types';
-import { initialCustomers } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { CustomerForm } from '@/components/customer-form';
 import {
@@ -38,29 +38,50 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 
 export default function CustomersPage() {
   const { toast } = useToast();
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
 
-  const handleFormSubmit = (customer: Customer) => {
-    if (editingCustomer) {
-      // Edit
-      setCustomers(
-        customers.map((c) => (c.id === customer.id ? customer : c))
-      );
-      toast({ title: 'Customer Updated', description: `${customer.fullName} has been updated.` });
-    } else {
-      // Add
-      const newCustomer = { ...customer, id: `c${customers.length + 1}` };
-      setCustomers([...customers, newCustomer]);
-      toast({ title: 'Customer Added', description: `${customer.fullName} has been added.` });
+  useEffect(() => {
+    setLoading(true);
+    const unsubscribe = onSnapshot(collection(db, 'customers'), (snapshot) => {
+      const customersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Customer));
+      setCustomers(customersData);
+      setLoading(false);
+    }, (error) => {
+        console.error("Error fetching customers:", error);
+        toast({ title: 'Error', description: 'Failed to fetch customers.', variant: 'destructive'});
+        setLoading(false);
+    });
+    
+    return () => unsubscribe();
+  }, [toast]);
+
+  const handleFormSubmit = async (customerData: Omit<Customer, 'id'>) => {
+    try {
+      if (editingCustomer) {
+        // Edit
+        const customerDoc = doc(db, 'customers', editingCustomer.id);
+        await updateDoc(customerDoc, customerData);
+        toast({ title: 'Customer Updated', description: `${customerData.fullName} has been updated.` });
+      } else {
+        // Add
+        await addDoc(collection(db, 'customers'), customerData);
+        toast({ title: 'Customer Added', description: `${customerData.fullName} has been added.` });
+      }
+      handleCloseForm();
+    } catch (error) {
+        console.error("Error saving customer:", error);
+        toast({ title: 'Error', description: 'Failed to save customer details.', variant: 'destructive'});
     }
-    handleCloseForm();
   };
 
   const handleEdit = (customer: Customer) => {
@@ -68,12 +89,17 @@ export default function CustomersPage() {
     setIsFormOpen(true);
   };
   
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!customerToDelete) return;
-    setCustomers(customers.filter((c) => c.id !== customerToDelete.id));
-    toast({ title: 'Customer Deleted', description: `${customerToDelete.fullName} has been deleted.`, variant: 'destructive' });
-    setIsDeleteDialogOpen(false);
-    setCustomerToDelete(null);
+    try {
+        await deleteDoc(doc(db, 'customers', customerToDelete.id));
+        toast({ title: 'Customer Deleted', description: `${customerToDelete.fullName} has been deleted.`, variant: 'destructive' });
+        setIsDeleteDialogOpen(false);
+        setCustomerToDelete(null);
+    } catch (error) {
+        console.error("Error deleting customer:", error);
+        toast({ title: 'Error', description: 'Failed to delete customer.', variant: 'destructive'});
+    }
   };
   
   const openDeleteDialog = (customer: Customer) => {
@@ -90,7 +116,7 @@ export default function CustomersPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Customers</h2>
-        <Button onClick={() => setIsFormOpen(true)}>
+        <Button onClick={() => { setEditingCustomer(null); setIsFormOpen(true); }}>
           <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
         </Button>
       </div>
@@ -106,31 +132,45 @@ export default function CustomersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {customers.map((customer) => (
-              <TableRow key={customer.id}>
-                <TableCell className="font-medium">{customer.fullName}</TableCell>
-                <TableCell>{customer.phone}</TableCell>
-                <TableCell>{customer.email}</TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(customer)}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => openDeleteDialog(customer)} className="text-destructive focus:text-destructive">
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+            {loading ? (
+                <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                       <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+                    </TableCell>
+                </TableRow>
+            ) : customers.length === 0 ? (
+                 <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                        No customers found. Add one to get started.
+                    </TableCell>
+                </TableRow>
+            ) : (
+              customers.map((customer) => (
+                <TableRow key={customer.id}>
+                  <TableCell className="font-medium">{customer.fullName}</TableCell>
+                  <TableCell>{customer.phone}</TableCell>
+                  <TableCell>{customer.email}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(customer)}>
+                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openDeleteDialog(customer)} className="text-destructive focus:text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
