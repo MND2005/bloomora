@@ -96,6 +96,30 @@ export default function DashboardPage() {
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Card className="aspect-square sm:aspect-auto flex flex-col justify-center">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Payments</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${stats.totalPayments.toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">Total revenue collected.</p>
+          </CardContent>
+        </Card>
+         <Card className="aspect-square sm:aspect-auto flex flex-col justify-center">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Outstanding Balance</CardTitle>
+            <TrendingDown className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${stats.outstandingBalance.toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">Pending payments to be collected.</p>
+          </CardContent>
+        </Card>
+        <Card className="aspect-square sm:aspect-auto flex flex-col justify-center">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Processing</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -122,30 +146,6 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.completed}</div>
             <p className="text-xs text-muted-foreground">Orders successfully delivered.</p>
-          </CardContent>
-        </Card>
-        <Card className="aspect-square sm:aspect-auto flex flex-col justify-center">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Payments</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${stats.totalPayments.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">Total revenue collected.</p>
-          </CardContent>
-        </Card>
-         <Card className="aspect-square sm:aspect-auto flex flex-col justify-center">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding Balance</CardTitle>
-            <TrendingDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${stats.outstandingBalance.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">Pending payments to be collected.</p>
           </CardContent>
         </Card>
       </div>
