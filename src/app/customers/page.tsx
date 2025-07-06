@@ -35,9 +35,13 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
+import { useAuth } from '@/components/auth-provider';
+import { Separator } from '@/components/ui/separator';
+import { format } from 'date-fns';
 
 export default function CustomersPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -67,11 +71,23 @@ export default function CustomersPage() {
       if (editingCustomer) {
         // Edit
         const customerDoc = doc(db, 'customers', editingCustomer.id);
-        await updateDoc(customerDoc, customerData);
+        const updateData = {
+          ...customerData,
+          updatedAt: new Date().toISOString(),
+          updatedBy: user?.email || 'System',
+        }
+        await updateDoc(customerDoc, updateData);
         toast({ title: 'Customer Updated', description: `${customerData.fullName} has been updated.` });
       } else {
         // Add
-        await addDoc(collection(db, 'customers'), customerData);
+        const newCustomerData = {
+          ...customerData,
+          createdAt: new Date().toISOString(),
+          createdBy: user?.email || 'System',
+          updatedAt: new Date().toISOString(),
+          updatedBy: user?.email || 'System',
+        }
+        await addDoc(collection(db, 'customers'), newCustomerData);
         toast({ title: 'Customer Added', description: `${customerData.fullName} has been added.` });
       }
       handleCloseForm();
@@ -217,6 +233,25 @@ export default function CustomersPage() {
               <div className="grid grid-cols-[120px_1fr] items-start gap-x-4">
                 <Label className="text-right text-muted-foreground mt-1">Preferences</Label>
                 <p className="leading-relaxed">{customerToView.preferences || 'N/A'}</p>
+              </div>
+              <Separator className="my-2 col-span-2" />
+              <h4 className="font-semibold col-span-2 text-sm text-foreground">Action Centre</h4>
+
+              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
+                <Label className="text-right text-muted-foreground">Last Updated</Label>
+                <span>{customerToView.updatedAt ? format(new Date(customerToView.updatedAt), 'PPp') : 'N/A'}</span>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
+                <Label className="text-right text-muted-foreground">Updated By</Label>
+                <span>{customerToView.updatedBy || 'N/A'}</span>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
+                <Label className="text-right text-muted-foreground">Created</Label>
+                <span>{customerToView.createdAt ? format(new Date(customerToView.createdAt), 'PPp') : 'N/A'}</span>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
+                <Label className="text-right text-muted-foreground">Created By</Label>
+                <span>{customerToView.createdBy || 'N/A'}</span>
               </div>
             </div>
           )}

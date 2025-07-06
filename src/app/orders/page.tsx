@@ -37,10 +37,12 @@ import { db } from '@/lib/firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-
+import { useAuth } from '@/components/auth-provider';
+import { Separator } from '@/components/ui/separator';
 
 export default function OrdersPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,13 +93,22 @@ export default function OrdersPage() {
       if (editingOrder) {
         const orderDoc = doc(db, 'orders', editingOrder.id);
         const { id, orderId, orderDate, ...updateData } = { ...editingOrder, ...orderData };
-        await updateDoc(orderDoc, updateData);
+        const finalUpdateData = {
+          ...updateData,
+          updatedAt: new Date().toISOString(),
+          updatedBy: user?.email || 'System',
+        }
+        await updateDoc(orderDoc, finalUpdateData);
         toast({ title: 'Order Updated', description: `Order ${editingOrder.orderId} has been updated.` });
       } else {
         const newOrderData = {
           ...orderData,
           orderId: `BL-${Date.now().toString().slice(-4)}`,
           orderDate: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          createdBy: user?.email || 'System',
+          updatedAt: new Date().toISOString(),
+          updatedBy: user?.email || 'System',
         };
         await addDoc(collection(db, 'orders'), newOrderData);
         toast({ title: 'Order Added', description: `Order ${newOrderData.orderId} has been added.` });
@@ -287,6 +298,24 @@ export default function OrdersPage() {
                         <span className="font-semibold">LKR {orderToView.advanceAmount?.toFixed(2) ?? '0.00'}</span>
                     </div>
                 )}
+                <Separator className="my-2 col-span-2" />
+                <h4 className="font-semibold col-span-2 text-sm text-foreground">Action Centre</h4>
+                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                  <Label className="text-right text-muted-foreground">Last Updated</Label>
+                  <span>{orderToView.updatedAt ? format(new Date(orderToView.updatedAt), 'PPp') : 'N/A'}</span>
+                </div>
+                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                  <Label className="text-right text-muted-foreground">Updated By</Label>
+                  <span>{orderToView.updatedBy || 'N/A'}</span>
+                </div>
+                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                  <Label className="text-right text-muted-foreground">Created</Label>
+                  <span>{orderToView.createdAt ? format(new Date(orderToView.createdAt), 'PPp') : 'N/A'}</span>
+                </div>
+                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                  <Label className="text-right text-muted-foreground">Created By</Label>
+                  <span>{orderToView.createdBy || 'N/A'}</span>
+                </div>
             </div>
           )}
           <DialogFooter>

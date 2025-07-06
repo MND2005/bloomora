@@ -6,6 +6,10 @@ export type Customer = {
   email?: string;
   address: string;
   preferences?: string;
+  createdAt?: string; // ISO string
+  createdBy?: string; // user email
+  updatedAt?: string; // ISO string
+  updatedBy?: string; // user email
 };
 
 export type OrderStatus = 'COD' | 'Advance Taken' | 'Completed';
@@ -21,4 +25,8 @@ export type Order = {
   status: OrderStatus;
   advanceAmount?: number;
   specialInstructions: string;
+  createdAt?: string; // ISO string
+  createdBy?: string; // user email
+  updatedAt?: string; // ISO string
+  updatedBy?: string; // user email
 };
