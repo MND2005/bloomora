@@ -3,11 +3,12 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -42,6 +43,7 @@ import { OrderForm } from '@/components/order-form';
 import { format } from 'date-fns';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
+import { Label } from '@/components/ui/label';
 
 
 export default function OrdersPage() {
@@ -53,6 +55,8 @@ export default function OrdersPage() {
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [orderToView, setOrderToView] = useState<Order | null>(null);
 
   const customerMap = customers.reduce((acc, customer) => {
     acc[customer.id] = customer.fullName;
@@ -113,6 +117,11 @@ export default function OrdersPage() {
   const handleEdit = (order: Order) => {
     setEditingOrder(order);
     setIsFormOpen(true);
+  };
+
+  const handleViewDetails = (order: Order) => {
+    setOrderToView(order);
+    setIsViewDialogOpen(true);
   };
 
   const handleDelete = async () => {
@@ -211,6 +220,9 @@ export default function OrdersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                           <DropdownMenuItem onClick={() => handleViewDetails(order)}>
+                            <Eye className="mr-2 h-4 w-4" /> View
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(order)}>
                             <Pencil className="mr-2 h-4 w-4" /> Edit
                           </DropdownMenuItem>
@@ -241,6 +253,62 @@ export default function OrdersPage() {
             onSubmit={handleFormSubmit}
             onCancel={handleCloseForm}
           />
+        </DialogContent>
+      </Dialog>
+      
+       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+            <DialogDescription>
+              Viewing full information for Order ID: {orderToView?.orderId}
+            </DialogDescription>
+          </DialogHeader>
+          {orderToView && (
+             <div className="grid gap-3 py-4 text-sm">
+                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                  <Label className="text-right text-muted-foreground">Order ID</Label>
+                  <span>{orderToView.orderId}</span>
+                </div>
+                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                  <Label className="text-right text-muted-foreground">Customer</Label>
+                  <span>{customerMap[orderToView.customerId] || 'Unknown'}</span>
+                </div>
+                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                  <Label className="text-right text-muted-foreground">Order Date</Label>
+                  <span>{format(new Date(orderToView.orderDate), 'PPp')}</span>
+                </div>
+                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                  <Label className="text-right text-muted-foreground">Delivery Date</Label>
+                  <span>{format(new Date(orderToView.deliveryDate), 'PPp')}</span>
+                </div>
+                <div className="grid grid-cols-[150px_1fr] items-start gap-x-4">
+                  <Label className="text-right text-muted-foreground mt-1">Products Ordered</Label>
+                  <p className="leading-relaxed whitespace-pre-wrap">{orderToView.products}</p>
+                </div>
+                 <div className="grid grid-cols-[150px_1fr] items-start gap-x-4">
+                  <Label className="text-right text-muted-foreground mt-1">Special Instructions</Label>
+                  <p className="leading-relaxed whitespace-pre-wrap">{orderToView.specialInstructions || 'N/A'}</p>
+                </div>
+                <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                  <Label className="text-right text-muted-foreground">Total Value</Label>
+                  <span className="font-semibold">${orderToView.totalValue.toFixed(2)}</span>
+                </div>
+                 <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                  <Label className="text-right text-muted-foreground">Status</Label>
+                  <Badge variant={getStatusBadgeVariant(orderToView.status)}>{orderToView.status}</Badge>
+                </div>
+                {orderToView.status === 'Advance Taken' && (
+                    <div className="grid grid-cols-[150px_1fr] items-center gap-x-4">
+                        <Label className="text-right text-muted-foreground">Advance Paid</Label>
+                        <span className="font-semibold">${orderToView.advanceAmount?.toFixed(2) ?? '0.00'}</span>
+                    </div>
+                )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       

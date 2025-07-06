@@ -3,11 +3,12 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -40,6 +41,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { Label } from '@/components/ui/label';
 
 export default function CustomersPage() {
   const { toast } = useToast();
@@ -49,6 +51,8 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [customerToView, setCustomerToView] = useState<Customer | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -107,6 +111,11 @@ export default function CustomersPage() {
     setIsDeleteDialogOpen(true);
   }
 
+  const handleViewDetails = (customer: Customer) => {
+    setCustomerToView(customer);
+    setIsViewDialogOpen(true);
+  };
+
   const handleCloseForm = () => {
     setEditingCustomer(null);
     setIsFormOpen(false);
@@ -159,6 +168,9 @@ export default function CustomersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewDetails(customer)}>
+                          <Eye className="mr-2 h-4 w-4" /> View
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(customer)}>
                           <Pencil className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
@@ -188,6 +200,44 @@ export default function CustomersPage() {
             onSubmit={handleFormSubmit}
             onCancel={handleCloseForm}
           />
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Customer Details</DialogTitle>
+            <DialogDescription>
+              Viewing full information for {customerToView?.fullName}.
+            </DialogDescription>
+          </DialogHeader>
+          {customerToView && (
+             <div className="grid gap-3 py-4 text-sm">
+              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
+                <Label className="text-right text-muted-foreground">Full Name</Label>
+                <span>{customerToView.fullName}</span>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
+                <Label className="text-right text-muted-foreground">Contact</Label>
+                <span>{customerToView.phone}</span>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] items-center gap-x-4">
+                <Label className="text-right text-muted-foreground">Email</Label>
+                <span>{customerToView.email}</span>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] items-start gap-x-4">
+                <Label className="text-right text-muted-foreground mt-1">Address</Label>
+                <p className="leading-relaxed">{customerToView.address}</p>
+              </div>
+              <div className="grid grid-cols-[120px_1fr] items-start gap-x-4">
+                <Label className="text-right text-muted-foreground mt-1">Preferences</Label>
+                <p className="leading-relaxed">{customerToView.preferences || 'N/A'}</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       
