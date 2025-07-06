@@ -136,9 +136,9 @@ export default function CustomersPage() {
             </div>
         ) : (
           customers.map((customer) => (
-            <Card key={customer.id} className="p-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center justify-between transition-colors hover:bg-muted/20">
+            <Card key={customer.id} className="p-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center justify-between transition-colors hover:bg-accent">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-accent">
+                <div className="p-3 rounded-full bg-secondary shadow-neumorphic-inset">
                     <User className="w-5 h-5 text-accent-foreground" />
                 </div>
                 <div className="grid gap-0.5">

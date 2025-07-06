@@ -72,6 +72,12 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      boxShadow: {
+        'neumorphic-outset': '6px 6px 12px hsl(var(--shadow-dark)), -6px -6px 12px hsl(var(--shadow-light))',
+        'neumorphic-inset': 'inset 6px 6px 12px hsl(var(--shadow-dark)), inset -6px -6px 12px hsl(var(--shadow-light))',
+        'neumorphic-outset-sm': '3px 3px 6px hsl(var(--shadow-dark)), -3px -3px 6px hsl(var(--shadow-light))',
+        'neumorphic-inset-sm': 'inset 3px 3px 6px hsl(var(--shadow-dark)), inset -3px -3px 6px hsl(var(--shadow-light))',
+      },
       keyframes: {
         'accordion-down': {
           from: {
