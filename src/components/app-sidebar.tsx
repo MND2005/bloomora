@@ -19,6 +19,7 @@ import {
   ClipboardList,
   Users,
   Flower2,
+  FileText,
 } from 'lucide-react';
 import { AppHeader } from './app-header';
 
@@ -77,6 +78,18 @@ function AppSidebarLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/customers" onClick={handleLinkClick}>
                   <Users />
                   <span>Customers</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/reports')}
+                tooltip="Reports"
+              >
+                <Link href="/reports" onClick={handleLinkClick}>
+                  <FileText />
+                  <span>Reports</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
