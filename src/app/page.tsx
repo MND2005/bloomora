@@ -112,6 +112,7 @@ export default function DashboardPage() {
 
   const handleStatusCardClick = (status: OrderStatus) => {
     const filteredOrders = orders.filter(order => order.status === status);
+    filteredOrders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
     setOrdersToShow(filteredOrders);
     setDialogTitle(`${status} Orders`);
     setDialogDescription(`Showing all orders with the status "${status}".`);
@@ -143,6 +144,9 @@ export default function DashboardPage() {
         setDialogContent('outstanding');
     }
     
+    // Sort to ensure latest order is always first in the popup
+    filteredOrders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
+
     setOrdersToShow(filteredOrders);
     setDialogTitle(title);
     setDialogDescription(description);
