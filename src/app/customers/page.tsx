@@ -40,7 +40,7 @@ import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { sendTelegramNotification, formatNewCustomerMessage } from '@/services/telegram-service';
+import { sendTelegramNotification, formatNewCustomerMessage, formatUpdatedCustomerMessage } from '@/services/telegram-service';
 
 export default function CustomersPage() {
   const { toast } = useToast();
@@ -114,6 +114,11 @@ export default function CustomersPage() {
         }
         await updateDoc(customerDoc, updateData);
         toast({ title: 'Customer Updated', description: `${customerData.fullName} has been updated.` });
+        
+        // Send Telegram notification
+        const message = formatUpdatedCustomerMessage(updateData);
+        sendTelegramNotification(message);
+
       } else {
         // Add
         const newCustomerData = {

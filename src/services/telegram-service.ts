@@ -61,6 +61,16 @@ export function formatNewCustomerMessage(customer: any): string {
 <b>Preferences:</b> ${escapeHtml(customer.preferences) || 'N/A'}`;
 }
 
+export function formatUpdatedCustomerMessage(customer: any): string {
+    return `✏️ <b>Customer Details Updated</b> ✏️
+
+<b>Name:</b> ${escapeHtml(customer.fullName)}
+<b>Phone:</b> ${escapeHtml(customer.phone)}
+<b>Email:</b> ${escapeHtml(customer.email) || 'N/A'}
+<b>Address:</b> ${escapeHtml(customer.address)}
+<b>Preferences:</b> ${escapeHtml(customer.preferences) || 'N/A'}`;
+}
+
 export function formatNewOrderMessage(order: any, customerName: string): string {
     return `🎉 <b>New Order Added</b> 🎉
 
