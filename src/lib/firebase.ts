@@ -10,6 +10,8 @@ import { getFirestore } from "firebase/firestore";
 // 3. Create a .env.local file in your project root.
 // 4. Add your config values there, prefixed with NEXT_PUBLIC_. For example:
 //    NEXT_PUBLIC_FIREBASE_API_KEY="your-key"
+// 5. For Telegram notifications, add your bot token:
+//    NEXT_PUBLIC_TELEGRAM_BOT_TOKEN="your-bot-token"
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "YOUR_API_KEY",

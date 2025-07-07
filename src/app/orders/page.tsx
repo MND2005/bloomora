@@ -49,6 +49,7 @@ import {
 import { Input } from '@/components/ui/input';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { sendTelegramNotification, formatNewOrderMessage, formatUpdatedOrderMessage } from '@/services/telegram-service';
 
 
 export default function OrdersPage() {
@@ -127,6 +128,12 @@ export default function OrdersPage() {
         }
         await updateDoc(orderDoc, finalUpdateData);
         toast({ title: 'Order Updated', description: `Order ${editingOrder.orderId} has been updated.` });
+        
+        // Send Telegram notification for update
+        const customerName = customerMap[finalUpdateData.customerId] || 'Unknown Customer';
+        const message = formatUpdatedOrderMessage({ ...finalUpdateData, orderId: editingOrder.orderId }, customerName);
+        sendTelegramNotification(message);
+
       } else {
         const newOrderData = {
           ...orderData,
@@ -139,6 +146,11 @@ export default function OrdersPage() {
         };
         await addDoc(collection(db, 'orders'), newOrderData);
         toast({ title: 'Order Added', description: `Order ${newOrderData.orderId} has been added.` });
+
+        // Send Telegram notification for new order
+        const customerName = customerMap[newOrderData.customerId] || 'Unknown Customer';
+        const message = formatNewOrderMessage(newOrderData, customerName);
+        sendTelegramNotification(message);
       }
       handleCloseForm();
     } catch(e) {
