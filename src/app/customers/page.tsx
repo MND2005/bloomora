@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye, User, Search } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye, User, Search, Package } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { Customer } from '@/lib/types';
+import type { Customer, Order } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { CustomerForm } from '@/components/customer-form';
 import {
@@ -39,11 +39,13 @@ import { useAuth } from '@/components/auth-provider';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 
 export default function CustomersPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -55,17 +57,30 @@ export default function CustomersPage() {
 
   useEffect(() => {
     setLoading(true);
-    const unsubscribe = onSnapshot(collection(db, 'customers'), (snapshot) => {
+
+    const unsubCustomers = onSnapshot(collection(db, 'customers'), (snapshot) => {
       const customersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Customer));
       setCustomers(customersData);
-      setLoading(false);
     }, (error) => {
         console.error("Error fetching customers:", error);
         toast({ title: 'Error', description: 'Failed to fetch customers.', variant: 'destructive'});
         setLoading(false);
     });
+
+    const unsubOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
+        const ordersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Order));
+        setOrders(ordersData);
+        setLoading(false);
+    }, (error) => {
+        console.error("Error fetching orders:", error);
+        toast({ title: 'Error', description: 'Failed to fetch orders.', variant: 'destructive'});
+        setLoading(false);
+    });
     
-    return () => unsubscribe();
+    return () => {
+        unsubCustomers();
+        unsubOrders();
+    };
   }, [toast]);
 
   const filteredCustomers = useMemo(() => {
@@ -78,6 +93,13 @@ export default function CustomersPage() {
       (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [customers, searchTerm]);
+  
+  const customerOrders = useMemo(() => {
+    if (!customerToView) return [];
+    return orders.filter(order => order.customerId === customerToView.id)
+        .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
+  }, [orders, customerToView]);
+
 
   const handleFormSubmit = async (customerData: Omit<Customer, 'id'>) => {
     try {
@@ -141,6 +163,20 @@ export default function CustomersPage() {
   const handleCloseForm = () => {
     setEditingCustomer(null);
     setIsFormOpen(false);
+  };
+
+  const getStatusBadgeVariant = (status: Order['status']) => {
+    switch (status) {
+      case 'Delivered':
+        return 'default';
+      case 'Completed':
+        return 'outline';
+      case 'COD':
+      case 'Advance Taken':
+        return 'secondary';
+      default:
+        return 'default';
+    }
   };
 
   return (
@@ -230,7 +266,7 @@ export default function CustomersPage() {
       </Dialog>
       
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Customer Details</DialogTitle>
             <DialogDescription>
@@ -238,46 +274,79 @@ export default function CustomersPage() {
             </DialogDescription>
           </DialogHeader>
           {customerToView && (
-             <div className="space-y-4 py-4 text-sm">
-                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
-                    <Label className="text-muted-foreground sm:text-right">Full Name</Label>
-                    <span className="break-words">{customerToView.fullName}</span>
-                </div>
-                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
-                    <Label className="text-muted-foreground sm:text-right">Contact</Label>
-                    <span className="break-words">{customerToView.phone}</span>
-                </div>
-                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
-                    <Label className="text-muted-foreground sm:text-right">Email</Label>
-                    <span className="break-words">{customerToView.email || 'N/A'}</span>
-                </div>
-                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-start sm:gap-x-4">
-                    <Label className="text-muted-foreground sm:text-right sm:mt-1">Address</Label>
-                    <p className="leading-relaxed break-words">{customerToView.address}</p>
-                </div>
-                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-start sm:gap-x-4">
-                    <Label className="text-muted-foreground sm:text-right sm:mt-1">Preferences</Label>
-                    <p className="leading-relaxed break-words">{customerToView.preferences || 'N/A'}</p>
+             <div className="py-4">
+                <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                        <Label className="text-muted-foreground sm:text-right">Full Name</Label>
+                        <span className="break-words">{customerToView.fullName}</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                        <Label className="text-muted-foreground sm:text-right">Contact</Label>
+                        <span className="break-words">{customerToView.phone}</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                        <Label className="text-muted-foreground sm:text-right">Email</Label>
+                        <span className="break-words">{customerToView.email || 'N/A'}</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-start sm:gap-x-4">
+                        <Label className="text-muted-foreground sm:text-right sm:mt-1">Address</Label>
+                        <p className="leading-relaxed break-words">{customerToView.address}</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-start sm:gap-x-4">
+                        <Label className="text-muted-foreground sm:text-right sm:mt-1">Preferences</Label>
+                        <p className="leading-relaxed break-words">{customerToView.preferences || 'N/A'}</p>
+                    </div>
                 </div>
 
-                <Separator className="my-2" />
-                <h4 className="font-semibold text-sm text-foreground">Action Centre</h4>
+                <Separator className="my-4" />
                 
-                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
-                    <Label className="text-muted-foreground sm:text-right">Last Updated</Label>
-                    <span className="break-words">{customerToView.updatedAt ? format(new Date(customerToView.updatedAt), 'PPp') : 'N/A'}</span>
+                <div className="space-y-3">
+                    <h4 className="font-semibold text-foreground">Order History ({customerOrders.length})</h4>
+                    {customerOrders.length > 0 ? (
+                        <div className="space-y-2 max-h-48 overflow-y-auto pr-3 -mr-2">
+                           {customerOrders.map(order => (
+                                <Card key={order.id} className="p-3 text-sm">
+                                    <div className="flex justify-between items-start">
+                                        <div className="grid gap-0.5">
+                                            <p className="font-semibold">{order.orderId}</p>
+                                            <p className="text-xs text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
+                                        </div>
+                                        <div className="text-right flex flex-col items-end gap-1">
+                                            <p className="font-semibold">LKR {order.totalValue.toFixed(2)}</p>
+                                            <Badge variant={getStatusBadgeVariant(order.status)} className="h-auto text-xs">{order.status}</Badge>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted-foreground py-8 rounded-lg bg-muted/50">
+                            <Package className="mx-auto h-8 w-8 mb-2" />
+                            <p>No orders found for this customer.</p>
+                        </div>
+                    )}
                 </div>
-                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
-                    <Label className="text-muted-foreground sm:text-right">Updated By</Label>
-                    <span className="break-words">{customerToView.updatedBy || 'N/A'}</span>
-                </div>
-                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
-                    <Label className="text-muted-foreground sm:text-right">Created</Label>
-                    <span className="break-words">{customerToView.createdAt ? format(new Date(customerToView.createdAt), 'PPp') : 'N/A'}</span>
-                </div>
-                <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
-                    <Label className="text-muted-foreground sm:text-right">Created By</Label>
-                    <span className="break-words">{customerToView.createdBy || 'N/A'}</span>
+
+                <Separator className="my-4" />
+                
+                <div className="space-y-2 text-sm">
+                    <h4 className="font-semibold text-sm text-foreground mb-2">Action Centre</h4>
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                        <Label className="text-muted-foreground sm:text-right">Last Updated</Label>
+                        <span className="break-words">{customerToView.updatedAt ? format(new Date(customerToView.updatedAt), 'PPp') : 'N/A'}</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                        <Label className="text-muted-foreground sm:text-right">Updated By</Label>
+                        <span className="break-words">{customerToView.updatedBy || 'N/A'}</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                        <Label className="text-muted-foreground sm:text-right">Created</Label>
+                        <span className="break-words">{customerToView.createdAt ? format(new Date(customerToView.createdAt), 'PPp') : 'N/A'}</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:items-center sm:gap-x-4">
+                        <Label className="text-muted-foreground sm:text-right">Created By</Label>
+                        <span className="break-words">{customerToView.createdBy || 'N/A'}</span>
+                    </div>
                 </div>
             </div>
           )}
