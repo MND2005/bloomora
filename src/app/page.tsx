@@ -42,7 +42,7 @@ export default function DashboardPage() {
   const [ordersToShow, setOrdersToShow] = useState<Order[]>([]);
   const [dialogTitle, setDialogTitle] = useState('');
   const [dialogDescription, setDialogDescription] = useState('');
-  const [dialogContent, setDialogContent] = useState<'default' | 'outstanding'>('default');
+  const [dialogContent, setDialogContent] = useState<'default' | 'outstanding' | 'payments'>('default');
 
   useEffect(() => {
     setLoading(true);
@@ -126,7 +126,7 @@ export default function DashboardPage() {
         );
         title = 'Orders Contributing to Total Payments';
         description = 'These orders have received payments (full or partial).';
-        setDialogContent('default');
+        setDialogContent('payments');
     } else if (type === 'outstandingBalance') {
         filteredOrders = orders.filter(order => 
             order.status === 'COD' || 
@@ -278,34 +278,48 @@ export default function DashboardPage() {
           <div className="flex-1 overflow-y-auto -mx-6 px-6">
             <div className="space-y-4">
               {ordersToShow.length > 0 ? (
-                dialogContent === 'outstanding' ? (
-                   ordersToShow.map((order) => (
-                    <Card key={order.id} className="p-4 flex flex-col gap-3 transition-colors hover:bg-accent">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                            <div className="grid gap-0.5">
-                                <p className="font-semibold">{order.orderId} - <span className="font-normal">{customers[order.customerId]?.fullName || 'Unknown'}</span></p>
-                                <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
+                dialogContent === 'outstanding' || dialogContent === 'payments' ? (
+                   ordersToShow.map((order) => {
+                    let amountPaid = 0;
+                    if (dialogContent === 'outstanding') {
+                        amountPaid = order.advanceAmount || 0;
+                    } else { // payments
+                        if (order.status === 'Completed' || order.status === 'Delivered') {
+                            amountPaid = order.totalValue;
+                        } else if (order.status === 'Advance Taken') {
+                            amountPaid = order.advanceAmount || 0;
+                        }
+                    }
+                    const toPay = order.totalValue - amountPaid;
+
+                    return (
+                        <Card key={order.id} className="p-4 flex flex-col gap-3 transition-colors hover:bg-accent">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <div className="grid gap-0.5">
+                                    <p className="font-semibold">{order.orderId} - <span className="font-normal">{customers[order.customerId]?.fullName || 'Unknown'}</span></p>
+                                    <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
+                                </div>
+                                <Badge variant={getStatusBadgeVariant(order.status)} className="self-start sm:self-center">{order.status}</Badge>
                             </div>
-                            <Badge variant={getStatusBadgeVariant(order.status)} className="self-start sm:self-center">{order.status}</Badge>
-                        </div>
-                        <div className="border-t border-border mt-2 pt-3">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center text-sm">
-                                <div>
-                                    <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">Total Value</p>
-                                    <p className="font-bold text-base">LKR {order.totalValue.toFixed(2)}</p>
-                                </div>
-                                <div>
-                                    <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">Paid</p>
-                                    <p className="font-bold text-base text-chart-2">LKR {(order.advanceAmount || 0).toFixed(2)}</p>
-                                </div>
-                                <div>
-                                    <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">To Pay</p>
-                                    <p className="font-bold text-base text-destructive">LKR {(order.totalValue - (order.advanceAmount || 0)).toFixed(2)}</p>
+                            <div className="border-t border-border mt-2 pt-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center text-sm">
+                                    <div>
+                                        <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">Total Value</p>
+                                        <p className="font-bold text-base">LKR {order.totalValue.toFixed(2)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">Paid</p>
+                                        <p className="font-bold text-base text-chart-2">LKR {amountPaid.toFixed(2)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">{dialogContent === 'outstanding' ? 'To Pay' : 'Remaining Due'}</p>
+                                        <p className="font-bold text-base text-destructive">LKR {toPay.toFixed(2)}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Card>
-                ))
+                        </Card>
+                    )
+                   })
                 ) : (
                     ordersToShow.map((order) => (
                         <Card key={order.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors hover:bg-accent">
