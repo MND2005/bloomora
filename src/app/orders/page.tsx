@@ -155,12 +155,13 @@ export default function OrdersPage() {
   
   const getStatusBadgeVariant = (status: Order['status']) => {
     switch (status) {
-      case 'Completed':
+      case 'Delivered':
         return 'default';
-      case 'COD':
-        return 'secondary';
-      case 'Advance Taken':
+      case 'Completed':
         return 'outline';
+      case 'COD':
+      case 'Advance Taken':
+        return 'secondary';
       default:
         return 'default';
     }

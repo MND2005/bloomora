@@ -12,7 +12,7 @@ export type Customer = {
   updatedBy?: string; // user email
 };
 
-export type OrderStatus = 'COD' | 'Advance Taken' | 'Completed';
+export type OrderStatus = 'COD' | 'Advance Taken' | 'Completed' | 'Delivered';
 
 export type Order = {
   id: string;

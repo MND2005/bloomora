@@ -17,6 +17,7 @@ import {
   Loader2,
   TrendingUp,
   TrendingDown,
+  Archive,
 } from 'lucide-react';
 import type { Order, Customer, OrderStatus } from '@/lib/types';
 import { format } from 'date-fns';
@@ -76,22 +77,26 @@ export default function DashboardPage() {
     processing: orders.filter((o) => o.status === 'COD').length,
     advanceTaken: orders.filter((o) => o.status === 'Advance Taken').length,
     completed: orders.filter((o) => o.status === 'Completed').length,
+    delivered: orders.filter((o) => o.status === 'Delivered').length,
     totalPayments: orders.reduce((acc, order) => {
-      if (order.status === 'Completed') return acc + order.totalValue;
-      if (order.status === 'Advance Taken' && order.advanceAmount)
+      if (order.status === 'Delivered') {
+        return acc + order.totalValue;
+      }
+      if (order.advanceAmount) {
         return acc + order.advanceAmount;
+      }
       return acc;
     }, 0),
     outstandingBalance: orders.reduce((acc, order) => {
-      if (order.status === 'COD') return acc + order.totalValue;
-      if (order.status === 'Advance Taken' && order.advanceAmount)
-        return acc + (order.totalValue - order.advanceAmount);
-      return acc;
+      if (order.status === 'Delivered') {
+        return acc;
+      }
+      return acc + (order.totalValue - (order.advanceAmount || 0));
     }, 0),
   };
 
   const upcomingDeliveries = orders
-    .filter((o) => o.status !== 'Completed' && new Date(o.deliveryDate) >= new Date())
+    .filter((o) => o.status !== 'Delivered' && new Date(o.deliveryDate) >= new Date())
     .sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime())
     .slice(0, 5);
 
@@ -109,11 +114,11 @@ export default function DashboardPage() {
     let description = '';
 
     if (type === 'totalPayments') {
-        filteredOrders = orders.filter(order => order.status === 'Completed' || (order.status === 'Advance Taken' && order.advanceAmount));
+        filteredOrders = orders.filter(order => order.status === 'Delivered' || (order.status === 'Advance Taken' && order.advanceAmount));
         title = 'Orders Contributing to Total Payments';
         description = 'These orders have received payments (full or partial).';
     } else if (type === 'outstandingBalance') {
-        filteredOrders = orders.filter(order => order.status === 'COD' || (order.status === 'Advance Taken' && order.totalValue > (order.advanceAmount || 0)));
+        filteredOrders = orders.filter(order => order.status !== 'Delivered');
         title = 'Orders with Outstanding Balance';
         description = 'These orders have pending payments to be collected.';
     }
@@ -126,12 +131,13 @@ export default function DashboardPage() {
 
   const getStatusBadgeVariant = (status: Order['status']) => {
     switch (status) {
-      case 'Completed':
+      case 'Delivered':
         return 'default';
-      case 'COD':
-        return 'secondary';
-      case 'Advance Taken':
+      case 'Completed':
         return 'outline';
+      case 'COD':
+      case 'Advance Taken':
+        return 'secondary';
       default:
         return 'default';
     }
@@ -149,7 +155,7 @@ export default function DashboardPage() {
     <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
       <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
       
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
         <Card onClick={() => handleFinancialCardClick('totalPayments')} className="aspect-square sm:aspect-auto flex flex-col justify-center cursor-pointer hover:bg-accent transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Payments</CardTitle>
@@ -197,10 +203,20 @@ export default function DashboardPage() {
         <Card onClick={() => handleStatusCardClick('Completed')} className="aspect-square sm:aspect-auto flex flex-col justify-center cursor-pointer hover:bg-accent transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <PackageCheck className="h-4 w-4 text-muted-foreground" />
+            <Archive className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.completed}</div>
+            <p className="text-xs text-muted-foreground">Orders finished and packed.</p>
+          </CardContent>
+        </Card>
+        <Card onClick={() => handleStatusCardClick('Delivered')} className="aspect-square sm:aspect-auto flex flex-col justify-center cursor-pointer hover:bg-accent transition-colors">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Delivered</CardTitle>
+            <PackageCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.delivered}</div>
             <p className="text-xs text-muted-foreground">Orders successfully delivered.</p>
           </CardContent>
         </Card>
@@ -226,7 +242,7 @@ export default function DashboardPage() {
                             <p className="text-sm text-muted-foreground">{order.orderId} - {format(new Date(order.deliveryDate), 'PPP p')}</p>
                         </div>
                     </div>
-                    <Badge variant="outline" className="self-start sm:self-center">{order.status}</Badge>
+                    <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
                 </div>
             ))
             ) : (
