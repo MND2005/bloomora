@@ -206,7 +206,7 @@ export default function ReportsPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Reports</h2>
-        <div className="flex w-full sm:w-auto items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <Popover>
                 <PopoverTrigger asChild>
                     <Button
@@ -271,7 +271,7 @@ export default function ReportsPage() {
                         Summary for the selected period. Click "Generate Report" to download the full PDF.
                     </p>
                 </CardHeader>
-                <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                     <Card className="p-4">
                         <h3 className="text-sm font-medium text-muted-foreground">Total Orders</h3>
                         <p className="text-2xl font-bold">{reportStats.totalOrders}</p>
@@ -311,12 +311,12 @@ export default function ReportsPage() {
                     {filteredOrders.length > 0 ? (
                     <div className="space-y-2">
                         {filteredOrders.map(order => (
-                            <div key={order.id} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50">
+                            <div key={order.id} className="flex flex-col gap-2 rounded-md p-2 hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <p className="font-semibold">{order.orderId} - <span className="font-normal">{customers[order.customerId]?.fullName || 'Unknown'}</span></p>
                                     <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
                                 </div>
-                                <div className="text-right">
+                                <div className="w-full text-left sm:w-auto sm:text-right">
                                      <p className="font-semibold">LKR {order.totalValue.toFixed(2)}</p>
                                      <p className="text-sm text-muted-foreground">{order.status}</p>
                                 </div>
