@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye, User } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye, User, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -38,6 +38,7 @@ import { Card } from '@/components/ui/card';
 import { useAuth } from '@/components/auth-provider';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
+import { Input } from '@/components/ui/input';
 
 export default function CustomersPage() {
   const { toast } = useToast();
@@ -50,6 +51,7 @@ export default function CustomersPage() {
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [customerToView, setCustomerToView] = useState<Customer | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -65,6 +67,17 @@ export default function CustomersPage() {
     
     return () => unsubscribe();
   }, [toast]);
+
+  const filteredCustomers = useMemo(() => {
+    if (!searchTerm) {
+      return customers;
+    }
+    return customers.filter(customer =>
+      customer.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [customers, searchTerm]);
 
   const handleFormSubmit = async (customerData: Omit<Customer, 'id'>) => {
     try {
@@ -134,9 +147,21 @@ export default function CustomersPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Customers</h2>
-        <Button onClick={() => { setEditingCustomer(null); setIsFormOpen(true); }}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
-        </Button>
+        <div className="flex w-full sm:w-auto items-center gap-2">
+            <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Search customers..."
+                    className="pl-8 w-full sm:w-[300px]"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <Button onClick={() => { setEditingCustomer(null); setIsFormOpen(true); }}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+            </Button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -144,14 +169,14 @@ export default function CustomersPage() {
              <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
              </div>
-        ) : customers.length === 0 ? (
+        ) : filteredCustomers.length === 0 ? (
              <div className="text-center py-24 text-muted-foreground">
                 <User className="mx-auto h-12 w-12 mb-4" />
-                <h3 className="text-lg font-semibold">No customers found</h3>
-                <p className="text-sm">Add a new customer to get started.</p>
+                <h3 className="text-lg font-semibold">{searchTerm ? 'No customers found' : 'No customers yet'}</h3>
+                <p className="text-sm">{searchTerm ? `Your search for "${searchTerm}" did not match any customers.` : 'Add a new customer to get started.'}</p>
             </div>
         ) : (
-          customers.map((customer) => (
+          filteredCustomers.map((customer) => (
             <Card key={customer.id} className="p-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center justify-between transition-colors hover:bg-accent">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-full bg-secondary shadow-neumorphic-inset">

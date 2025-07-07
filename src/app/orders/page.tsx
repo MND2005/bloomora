@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye, Package } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye, Package, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +45,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Input } from '@/components/ui/input';
 
 
 export default function OrdersPage() {
@@ -59,11 +60,14 @@ export default function OrdersPage() {
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [orderToView, setOrderToView] = useState<Order | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const customerMap = customers.reduce((acc, customer) => {
-    acc[customer.id] = customer.fullName;
-    return acc;
-  }, {} as Record<string, string>);
+  const customerMap = useMemo(() => {
+    return customers.reduce((acc, customer) => {
+      acc[customer.id] = customer.fullName;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [customers]);
 
   useEffect(() => {
     setLoading(true);
@@ -94,6 +98,19 @@ export default function OrdersPage() {
       unsubCustomers();
     };
   }, [toast, customers.length]);
+
+  const filteredOrders = useMemo(() => {
+    if (!searchTerm) {
+        return orders;
+    }
+    return orders.filter(order => {
+        const customerName = customerMap[order.customerId] || '';
+        return (
+            order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customerName.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    });
+  }, [orders, searchTerm, customerMap]);
 
   const handleFormSubmit = async (orderData: Omit<Order, 'id' | 'orderId' | 'orderDate'>) => {
     try {
@@ -174,16 +191,28 @@ export default function OrdersPage() {
     }
   };
   
-  const activeOrders = orders.filter(o => o.status !== 'Delivered');
-  const deliveredOrders = orders.filter(o => o.status === 'Delivered');
+  const activeOrders = filteredOrders.filter(o => o.status !== 'Delivered');
+  const deliveredOrders = filteredOrders.filter(o => o.status === 'Delivered');
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Orders</h2>
-        <Button onClick={() => { setEditingOrder(null); setIsFormOpen(true); }} disabled={customers.length === 0}>
-          <PlusCircle className="mr-2 h-4 w-4" /> New Order
-        </Button>
+        <div className="flex w-full sm:w-auto items-center gap-2">
+            <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Search by Order ID or Customer..."
+                    className="pl-8 w-full sm:w-[300px]"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <Button onClick={() => { setEditingOrder(null); setIsFormOpen(true); }} disabled={customers.length === 0}>
+              <PlusCircle className="mr-2 h-4 w-4" /> New Order
+            </Button>
+        </div>
       </div>
       {customers.length === 0 && !loading && (
         <p className="text-sm text-muted-foreground text-center py-4">
@@ -196,11 +225,11 @@ export default function OrdersPage() {
               <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-          ) : orders.length === 0 ? (
+          ) : filteredOrders.length === 0 ? (
               <div className="text-center py-24 text-muted-foreground">
                   <Package className="mx-auto h-12 w-12 mb-4" />
-                  <h3 className="text-lg font-semibold">No orders found</h3>
-                  <p className="text-sm">Create a new order to get started.</p>
+                  <h3 className="text-lg font-semibold">{searchTerm ? 'No orders found' : 'No orders yet'}</h3>
+                  <p className="text-sm">{searchTerm ? `Your search for "${searchTerm}" did not match any orders.` : 'Create a new order to get started.'}</p>
               </div>
           ) : (
             <>
@@ -248,8 +277,8 @@ export default function OrdersPage() {
                     ) : (
                       <div className="text-center py-10 text-muted-foreground">
                            <Package className="mx-auto h-12 w-12 mb-4" />
-                          <h3 className="text-lg font-semibold">No active orders</h3>
-                          <p className="text-sm">New orders will appear here.</p>
+                          <h3 className="text-lg font-semibold">{searchTerm ? 'No active orders found' : 'No active orders'}</h3>
+                          <p className="text-sm">{searchTerm ? 'Try a different search term.' : 'New orders will appear here.'}</p>
                       </div>
                     )}
                 </div>
