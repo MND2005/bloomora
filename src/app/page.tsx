@@ -42,6 +42,7 @@ export default function DashboardPage() {
   const [ordersToShow, setOrdersToShow] = useState<Order[]>([]);
   const [dialogTitle, setDialogTitle] = useState('');
   const [dialogDescription, setDialogDescription] = useState('');
+  const [dialogContent, setDialogContent] = useState<'default' | 'outstanding'>('default');
 
   useEffect(() => {
     setLoading(true);
@@ -108,6 +109,7 @@ export default function DashboardPage() {
     setOrdersToShow(filteredOrders);
     setDialogTitle(`${status} Orders`);
     setDialogDescription(`Showing all orders with the status "${status}".`);
+    setDialogContent('default');
     setIsStatusDialogOpen(true);
   };
   
@@ -124,6 +126,7 @@ export default function DashboardPage() {
         );
         title = 'Orders Contributing to Total Payments';
         description = 'These orders have received payments (full or partial).';
+        setDialogContent('default');
     } else if (type === 'outstandingBalance') {
         filteredOrders = orders.filter(order => 
             order.status === 'COD' || 
@@ -131,6 +134,7 @@ export default function DashboardPage() {
         );
         title = 'Orders with Outstanding Balance';
         description = 'These orders have pending payments to be collected.';
+        setDialogContent('outstanding');
     }
     
     setOrdersToShow(filteredOrders);
@@ -274,25 +278,55 @@ export default function DashboardPage() {
           <div className="flex-1 overflow-y-auto -mx-6 px-6">
             <div className="space-y-4">
               {ordersToShow.length > 0 ? (
-                ordersToShow.map((order) => (
-                  <Card key={order.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors hover:bg-accent">
-                      <div className="flex items-center gap-4 flex-1">
-                          <div className="p-3 rounded-full bg-secondary shadow-neumorphic-inset">
-                              <Package className="w-5 h-5 text-accent-foreground" />
-                          </div>
-                          <div className="grid gap-0.5 flex-1">
-                              <p className="font-semibold">{order.orderId} - <span className="font-normal">{customers[order.customerId]?.fullName || 'Unknown'}</span></p>
-                              <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
-                          </div>
-                      </div>
-                      <div className="flex items-center gap-4 sm:ml-auto w-full sm:w-auto justify-end">
-                          <p className="font-semibold text-lg mr-auto sm:mr-0">LKR {order.totalValue.toFixed(2)}</p>
-                           <Badge variant={getStatusBadgeVariant(order.status)} className="h-6">
-                              {order.status}
-                          </Badge>
-                      </div>
-                  </Card>
+                dialogContent === 'outstanding' ? (
+                   ordersToShow.map((order) => (
+                    <Card key={order.id} className="p-4 flex flex-col gap-3 transition-colors hover:bg-accent">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <div className="grid gap-0.5">
+                                <p className="font-semibold">{order.orderId} - <span className="font-normal">{customers[order.customerId]?.fullName || 'Unknown'}</span></p>
+                                <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
+                            </div>
+                            <Badge variant={getStatusBadgeVariant(order.status)} className="self-start sm:self-center">{order.status}</Badge>
+                        </div>
+                        <div className="border-t border-border mt-2 pt-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center text-sm">
+                                <div>
+                                    <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">Total Value</p>
+                                    <p className="font-bold text-base">LKR {order.totalValue.toFixed(2)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">Paid</p>
+                                    <p className="font-bold text-base text-chart-2">LKR {(order.advanceAmount || 0).toFixed(2)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">To Pay</p>
+                                    <p className="font-bold text-base text-destructive">LKR {(order.totalValue - (order.advanceAmount || 0)).toFixed(2)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
                 ))
+                ) : (
+                    ordersToShow.map((order) => (
+                        <Card key={order.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors hover:bg-accent">
+                            <div className="flex items-center gap-4 flex-1">
+                                <div className="p-3 rounded-full bg-secondary shadow-neumorphic-inset">
+                                    <Package className="w-5 h-5 text-accent-foreground" />
+                                </div>
+                                <div className="grid gap-0.5 flex-1">
+                                    <p className="font-semibold">{order.orderId} - <span className="font-normal">{customers[order.customerId]?.fullName || 'Unknown'}</span></p>
+                                    <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4 sm:ml-auto w-full sm:w-auto justify-end">
+                                <p className="font-semibold text-lg mr-auto sm:mr-0">LKR {order.totalValue.toFixed(2)}</p>
+                                <Badge variant={getStatusBadgeVariant(order.status)} className="h-6">
+                                    {order.status}
+                                </Badge>
+                            </div>
+                        </Card>
+                    ))
+                )
               ) : (
                 <div className="text-center py-16 text-muted-foreground">
                   <Package className="mx-auto h-12 w-12 mb-4" />
