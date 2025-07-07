@@ -210,9 +210,6 @@ export default function OrdersPage() {
     doc.setFontSize(26);
     doc.setFont('helvetica', 'bold');
     doc.text('Bloomora', 14, 22);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text('123 Floral Ave, Flower City, 12345', 14, 28);
     
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
@@ -228,9 +225,6 @@ export default function OrdersPage() {
     doc.setFont('helvetica', 'normal');
     doc.text(customer.address.replace(/\n/g, ', '), 14, 60);
     doc.text(customer.phone, 14, 65);
-    if (customer.email) {
-        doc.text(customer.email, 14, 70);
-    }
     
     const rightColX = pageWidth - 14;
     const rightColLabelsX = pageWidth - 60;
@@ -317,7 +311,7 @@ export default function OrdersPage() {
     const pageHeight = doc.internal.pageSize.getHeight();
     doc.setLineWidth(0.5);
     doc.line(14, pageHeight - 20, pageWidth - 14, pageHeight - 20);
-    doc.text('Bloomora | hello@bloomora.com | +94 112 345 678', pageWidth/2, pageHeight-10, { align: 'center'});
+    doc.text('Bloomora | +94 77 962 8295 (WhatsApp)', pageWidth/2, pageHeight-10, { align: 'center'});
 
     doc.save(`Invoice-${order.orderId}.pdf`);
   };
