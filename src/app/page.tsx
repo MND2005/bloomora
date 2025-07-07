@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { DateRange } from "react-day-picker";
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ import {
   TrendingUp,
   TrendingDown,
   Archive,
+  X,
 } from 'lucide-react';
 import type { Order, Customer, OrderStatus } from '@/lib/types';
 import { format } from 'date-fns';
@@ -38,11 +40,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+
 
 export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Record<string, Customer>>({});
   const [loading, setLoading] = useState(true);
+  const [date, setDate] = useState<DateRange | undefined>(undefined);
+  const [displayedOrders, setDisplayedOrders] = useState<Order[]>([]);
 
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [ordersToShow, setOrdersToShow] = useState<Order[]>([]);
@@ -80,12 +88,30 @@ export default function DashboardPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!date?.from) {
+      setDisplayedOrders(orders);
+    } else {
+      const fromDate = date.from;
+      const toDate = date.to ? date.to : date.from;
+      
+      const endOfDayToDate = new Date(toDate);
+      endOfDayToDate.setHours(23, 59, 59, 999);
+
+      const filtered = orders.filter(order => {
+        const orderDate = new Date(order.orderDate);
+        return orderDate >= fromDate && orderDate <= endOfDayToDate;
+      });
+      setDisplayedOrders(filtered);
+    }
+  }, [date, orders]);
+
   const stats = {
-    processing: orders.filter((o) => o.status === 'COD').length,
-    advanceTaken: orders.filter((o) => o.status === 'Advance Taken').length,
-    completed: orders.filter((o) => o.status === 'Completed').length,
-    delivered: orders.filter((o) => o.status === 'Delivered').length,
-    totalPayments: orders.reduce((acc, order) => {
+    processing: displayedOrders.filter((o) => o.status === 'COD').length,
+    advanceTaken: displayedOrders.filter((o) => o.status === 'Advance Taken').length,
+    completed: displayedOrders.filter((o) => o.status === 'Completed').length,
+    delivered: displayedOrders.filter((o) => o.status === 'Delivered').length,
+    totalPayments: displayedOrders.reduce((acc, order) => {
       if (order.status === 'Completed' || order.status === 'Delivered') {
         return acc + order.totalValue;
       }
@@ -94,7 +120,7 @@ export default function DashboardPage() {
       }
       return acc;
     }, 0),
-    outstandingBalance: orders.reduce((acc, order) => {
+    outstandingBalance: displayedOrders.reduce((acc, order) => {
       if (order.status === 'COD') {
         return acc + order.totalValue;
       }
@@ -105,13 +131,13 @@ export default function DashboardPage() {
     }, 0),
   };
 
-  const upcomingDeliveries = orders
+  const upcomingDeliveries = displayedOrders
     .filter((o) => o.status !== 'Delivered' && new Date(o.deliveryDate) >= new Date())
     .sort((a, b) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime())
     .slice(0, 5);
 
   const handleStatusCardClick = (status: OrderStatus) => {
-    const filteredOrders = orders.filter(order => order.status === status);
+    const filteredOrders = displayedOrders.filter(order => order.status === status);
     filteredOrders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
     setOrdersToShow(filteredOrders);
     setDialogTitle(`${status} Orders`);
@@ -126,7 +152,7 @@ export default function DashboardPage() {
     let description = '';
 
     if (type === 'totalPayments') {
-        filteredOrders = orders.filter(order => 
+        filteredOrders = displayedOrders.filter(order => 
             order.status === 'Completed' || 
             order.status === 'Delivered' || 
             order.status === 'Advance Taken'
@@ -135,7 +161,7 @@ export default function DashboardPage() {
         description = 'These orders have received payments (full or partial).';
         setDialogContent('payments');
     } else if (type === 'outstandingBalance') {
-        filteredOrders = orders.filter(order => 
+        filteredOrders = displayedOrders.filter(order => 
             order.status === 'COD' || 
             order.status === 'Advance Taken'
         );
@@ -177,7 +203,51 @@ export default function DashboardPage() {
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
-      <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <div className="flex items-center gap-2">
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        id="date"
+                        variant={"outline"}
+                        className={cn(
+                        "w-[260px] justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date?.from ? (
+                        date.to ? (
+                            <>
+                            {format(date.from, "LLL dd, y")} -{" "}
+                            {format(date.to, "LLL dd, y")}
+                            </>
+                        ) : (
+                            format(date.from, "LLL dd, y")
+                        )
+                        ) : (
+                        <span>Pick a date range</span>
+                        )}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                />
+                </PopoverContent>
+            </Popover>
+            <Button variant="ghost" size="icon" onClick={() => setDate(undefined)} disabled={!date}>
+                <X className="h-4 w-4" />
+                <span className="sr-only">Reset</span>
+            </Button>
+        </div>
+      </div>
       
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
         <Card onClick={() => handleFinancialCardClick('totalPayments')} className="aspect-square sm:aspect-auto flex flex-col justify-center cursor-pointer hover:bg-accent transition-colors">
