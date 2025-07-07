@@ -79,19 +79,22 @@ export default function DashboardPage() {
     completed: orders.filter((o) => o.status === 'Completed').length,
     delivered: orders.filter((o) => o.status === 'Delivered').length,
     totalPayments: orders.reduce((acc, order) => {
-      if (order.status === 'Delivered') {
+      if (order.status === 'Completed' || order.status === 'Delivered') {
         return acc + order.totalValue;
       }
-      if (order.advanceAmount) {
-        return acc + order.advanceAmount;
+      if (order.status === 'Advance Taken') {
+        return acc + (order.advanceAmount || 0);
       }
       return acc;
     }, 0),
     outstandingBalance: orders.reduce((acc, order) => {
-      if (order.status === 'Delivered') {
-        return acc;
+      if (order.status === 'COD') {
+        return acc + order.totalValue;
       }
-      return acc + (order.totalValue - (order.advanceAmount || 0));
+      if (order.status === 'Advance Taken') {
+        return acc + (order.totalValue - (order.advanceAmount || 0));
+      }
+      return acc;
     }, 0),
   };
 
@@ -114,11 +117,18 @@ export default function DashboardPage() {
     let description = '';
 
     if (type === 'totalPayments') {
-        filteredOrders = orders.filter(order => order.status === 'Delivered' || (order.status === 'Advance Taken' && order.advanceAmount));
+        filteredOrders = orders.filter(order => 
+            order.status === 'Completed' || 
+            order.status === 'Delivered' || 
+            order.status === 'Advance Taken'
+        );
         title = 'Orders Contributing to Total Payments';
         description = 'These orders have received payments (full or partial).';
     } else if (type === 'outstandingBalance') {
-        filteredOrders = orders.filter(order => order.status !== 'Delivered');
+        filteredOrders = orders.filter(order => 
+            order.status === 'COD' || 
+            order.status === 'Advance Taken'
+        );
         title = 'Orders with Outstanding Balance';
         description = 'These orders have pending payments to be collected.';
     }
