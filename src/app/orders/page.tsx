@@ -264,23 +264,25 @@ export default function OrdersPage() {
     
     const drawTotals = (y: number) => {
         let currentY = y + 10;
+        const totalsLabelX = 165;
+
         doc.setFontSize(12);
         
         doc.setFont('helvetica', 'bold');
-        doc.text('Total:', 140, currentY);
+        doc.text('Total:', totalsLabelX, currentY, { align: 'right' });
         doc.setFont('helvetica', 'normal');
         doc.text(`LKR ${order.totalValue.toFixed(2)}`, rightColX, currentY, { align: 'right' });
 
         if (order.status === 'Advance Taken' && order.advanceAmount) {
             currentY += 7;
             doc.setFont('helvetica', 'bold');
-            doc.text('Paid:', 140, currentY);
+            doc.text('Paid:', totalsLabelX, currentY, { align: 'right' });
             doc.setFont('helvetica', 'normal');
             doc.text(`LKR ${order.advanceAmount.toFixed(2)}`, rightColX, currentY, { align: 'right' });
         } else if (order.status === 'Completed' || order.status === 'Delivered') {
             currentY += 7;
             doc.setFont('helvetica', 'bold');
-            doc.text('Paid:', 140, currentY);
+            doc.text('Paid:', totalsLabelX, currentY, { align: 'right' });
             doc.setFont('helvetica', 'normal');
             doc.text(`LKR ${order.totalValue.toFixed(2)}`, rightColX, currentY, { align: 'right' });
         }
@@ -291,7 +293,7 @@ export default function OrdersPage() {
 
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text('Balance Due:', 140, currentY);
+        doc.text('Balance Due:', totalsLabelX, currentY, { align: 'right' });
         let balanceDue = 0;
         if (order.status === 'COD') {
             balanceDue = order.totalValue;
