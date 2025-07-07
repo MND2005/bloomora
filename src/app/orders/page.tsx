@@ -39,6 +39,13 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/components/auth-provider';
 import { Separator } from '@/components/ui/separator';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
 
 export default function OrdersPage() {
   const { toast } = useToast();
@@ -166,6 +173,9 @@ export default function OrdersPage() {
         return 'default';
     }
   };
+  
+  const activeOrders = orders.filter(o => o.status !== 'Delivered');
+  const deliveredOrders = orders.filter(o => o.status === 'Delivered');
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -181,7 +191,7 @@ export default function OrdersPage() {
         </p>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-6">
           {loading ? (
               <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -193,44 +203,109 @@ export default function OrdersPage() {
                   <p className="text-sm">Create a new order to get started.</p>
               </div>
           ) : (
-              orders.map((order) => (
-                <Card key={order.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors hover:bg-accent">
-                    <div className="flex items-center gap-4 flex-1">
-                        <div className="p-3 rounded-full bg-secondary shadow-neumorphic-inset">
-                            <Package className="w-5 h-5 text-accent-foreground" />
-                        </div>
-                        <div className="grid gap-0.5 flex-1">
-                            <p className="font-semibold">{order.orderId} - <span className="font-normal">{customerMap[order.customerId] || 'Unknown'}</span></p>
-                            <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4 sm:ml-auto w-full sm:w-auto justify-end">
-                        <p className="font-semibold text-lg mr-auto sm:mr-0">LKR {order.totalValue.toFixed(2)}</p>
-                         <Badge variant={getStatusBadgeVariant(order.status)} className="h-6">
-                            {order.status}
-                        </Badge>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewDetails(order)}>
-                                <Eye className="mr-2 h-4 w-4" /> View
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEdit(order)}>
-                                <Pencil className="mr-2 h-4 w-4" /> Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                            </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </Card>
-              ))
+            <>
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold tracking-tight">Active Orders</h3>
+                    {activeOrders.length > 0 ? (
+                        activeOrders.map((order) => (
+                          <Card key={order.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors hover:bg-accent">
+                              <div className="flex items-center gap-4 flex-1">
+                                  <div className="p-3 rounded-full bg-secondary shadow-neumorphic-inset">
+                                      <Package className="w-5 h-5 text-accent-foreground" />
+                                  </div>
+                                  <div className="grid gap-0.5 flex-1">
+                                      <p className="font-semibold">{order.orderId} - <span className="font-normal">{customerMap[order.customerId] || 'Unknown'}</span></p>
+                                      <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
+                                  </div>
+                              </div>
+                              <div className="flex items-center gap-4 sm:ml-auto w-full sm:w-auto justify-end">
+                                  <p className="font-semibold text-lg mr-auto sm:mr-0">LKR {order.totalValue.toFixed(2)}</p>
+                                   <Badge variant={getStatusBadgeVariant(order.status)} className="h-6">
+                                      {order.status}
+                                  </Badge>
+                                  <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" className="h-8 w-8 p-0">
+                                          <span className="sr-only">Open menu</span>
+                                          <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => handleViewDetails(order)}>
+                                          <Eye className="mr-2 h-4 w-4" /> View
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleEdit(order)}>
+                                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
+                                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                      </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
+                              </div>
+                          </Card>
+                        ))
+                    ) : (
+                      <div className="text-center py-10 text-muted-foreground">
+                           <Package className="mx-auto h-12 w-12 mb-4" />
+                          <h3 className="text-lg font-semibold">No active orders</h3>
+                          <p className="text-sm">New orders will appear here.</p>
+                      </div>
+                    )}
+                </div>
+
+                {deliveredOrders.length > 0 && (
+                   <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="delivered-orders">
+                            <AccordionTrigger className="text-xl font-semibold tracking-tight hover:no-underline">
+                                Delivered Orders ({deliveredOrders.length})
+                            </AccordionTrigger>
+                            <AccordionContent>
+                                <div className="space-y-4 pt-4 border-t">
+                                    {deliveredOrders.map((order) => (
+                                         <Card key={order.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors hover:bg-accent">
+                                            <div className="flex items-center gap-4 flex-1">
+                                                <div className="p-3 rounded-full bg-secondary shadow-neumorphic-inset">
+                                                    <Package className="w-5 h-5 text-accent-foreground" />
+                                                </div>
+                                                <div className="grid gap-0.5 flex-1">
+                                                    <p className="font-semibold">{order.orderId} - <span className="font-normal">{customerMap[order.customerId] || 'Unknown'}</span></p>
+                                                    <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4 sm:ml-auto w-full sm:w-auto justify-end">
+                                                <p className="font-semibold text-lg mr-auto sm:mr-0">LKR {order.totalValue.toFixed(2)}</p>
+                                                 <Badge variant={getStatusBadgeVariant(order.status)} className="h-6">
+                                                    {order.status}
+                                                </Badge>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <span className="sr-only">Open menu</span>
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => handleViewDetails(order)}>
+                                                        <Eye className="mr-2 h-4 w-4" /> View
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleEdit(order)} disabled>
+                                                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
+                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                    </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                )}
+            </>
           )}
       </div>
 
