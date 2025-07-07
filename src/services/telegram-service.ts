@@ -58,7 +58,8 @@ export function formatNewCustomerMessage(customer: any): string {
 <b>Phone:</b> ${escapeHtml(customer.phone)}
 <b>Email:</b> ${escapeHtml(customer.email) || 'N/A'}
 <b>Address:</b> ${escapeHtml(customer.address)}
-<b>Preferences:</b> ${escapeHtml(customer.preferences) || 'N/A'}`;
+<b>Preferences:</b> ${escapeHtml(customer.preferences) || 'N/A'}
+<b>Action By:</b> ${escapeHtml(customer.createdBy) || 'N/A'}`;
 }
 
 export function formatUpdatedCustomerMessage(customer: any): string {
@@ -68,7 +69,8 @@ export function formatUpdatedCustomerMessage(customer: any): string {
 <b>Phone:</b> ${escapeHtml(customer.phone)}
 <b>Email:</b> ${escapeHtml(customer.email) || 'N/A'}
 <b>Address:</b> ${escapeHtml(customer.address)}
-<b>Preferences:</b> ${escapeHtml(customer.preferences) || 'N/A'}`;
+<b>Preferences:</b> ${escapeHtml(customer.preferences) || 'N/A'}
+<b>Action By:</b> ${escapeHtml(customer.updatedBy) || 'N/A'}`;
 }
 
 export function formatNewOrderMessage(order: any, customerName: string): string {
@@ -84,7 +86,9 @@ export function formatNewOrderMessage(order: any, customerName: string): string 
 ${escapeHtml(order.products)}
 
 <b>Instructions:</b>
-${escapeHtml(order.specialInstructions) || 'N/A'}`;
+${escapeHtml(order.specialInstructions) || 'N/A'}
+
+<b>Action By:</b> ${escapeHtml(order.createdBy) || 'N/A'}`;
 }
 
 export function formatUpdatedOrderMessage(order: any, customerName: string): string {
@@ -100,5 +104,7 @@ export function formatUpdatedOrderMessage(order: any, customerName: string): str
 ${escapeHtml(order.products)}
 
 <b>Instructions:</b>
-${escapeHtml(order.specialInstructions) || 'N/A'}`;
+${escapeHtml(order.specialInstructions) || 'N/A'}
+
+<b>Action By:</b> ${escapeHtml(order.updatedBy) || 'N/A'}`;
 }
