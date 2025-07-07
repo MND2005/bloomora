@@ -22,7 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import type { Order, Customer, OrderStatus } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import {
@@ -324,26 +324,59 @@ export default function DashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-            {upcomingDeliveries.length > 0 ? (
-            upcomingDeliveries.map((order) => (
-                <div key={order.id} className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between w-full p-2 rounded-md transition-colors hover:bg-muted/30">
-                    <div className="flex items-center gap-2">
-                        <div className="p-3 rounded-full bg-accent">
-                            <CalendarIcon className="w-5 h-5 text-accent-foreground" />
-                        </div>
-                        <div className="grid gap-0.5">
-                            <p className="font-medium">{customers[order.customerId]?.fullName || 'Unknown Customer'}</p>
-                            <p className="text-sm text-muted-foreground">{order.orderId} - {format(new Date(order.deliveryDate), 'PPP p')}</p>
-                        </div>
+          {upcomingDeliveries.length > 0 ? (
+            upcomingDeliveries.map((order) => {
+              const deliveryDate = new Date(order.deliveryDate);
+              const daysUntil = differenceInDays(deliveryDate, new Date());
+              const isUrgent = daysUntil >= 0 && daysUntil < 10;
+
+              return (
+                <div
+                  key={order.id}
+                  className={cn(
+                    "flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between w-full p-2 rounded-md transition-colors",
+                    isUrgent
+                      ? "bg-destructive/10 hover:bg-destructive/20"
+                      : "hover:bg-muted/30"
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={cn(
+                        "p-3 rounded-full",
+                        isUrgent ? "bg-destructive" : "bg-accent"
+                      )}
+                    >
+                      <CalendarIcon
+                        className={cn(
+                          "w-5 h-5",
+                          isUrgent
+                            ? "text-destructive-foreground"
+                            : "text-accent-foreground"
+                        )}
+                      />
                     </div>
-                    <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                    <div className="grid gap-0.5">
+                      <p className="font-medium">
+                        {customers[order.customerId]?.fullName ||
+                          "Unknown Customer"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {order.orderId} - {format(new Date(order.deliveryDate), "PPP p")}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={getStatusBadgeVariant(order.status)}>
+                    {order.status}
+                  </Badge>
                 </div>
-            ))
-            ) : (
-                <div className="text-center text-muted-foreground h-24 flex items-center justify-center">
-                    <p>No upcoming deliveries.</p>
-                </div>
-            )}
+              );
+            })
+          ) : (
+            <div className="text-center text-muted-foreground h-24 flex items-center justify-center">
+              <p>No upcoming deliveries.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
