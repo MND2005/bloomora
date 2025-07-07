@@ -233,18 +233,20 @@ export default function OrdersPage() {
     }
     
     const rightColX = pageWidth - 14;
+    const rightColLabelsX = pageWidth - 60;
+    
     doc.setFont('helvetica', 'bold');
-    doc.text('Order ID:', rightColX - 35, 50);
+    doc.text('Order ID:', rightColLabelsX, 50, { align: 'left' });
     doc.setFont('helvetica', 'normal');
     doc.text(order.orderId, rightColX, 50, { align: 'right' });
 
     doc.setFont('helvetica', 'bold');
-    doc.text('Order Date:', rightColX - 35, 55);
+    doc.text('Order Date:', rightColLabelsX, 55, { align: 'left' });
     doc.setFont('helvetica', 'normal');
     doc.text(format(new Date(order.orderDate), 'PP'), rightColX, 55, { align: 'right' });
     
     doc.setFont('helvetica', 'bold');
-    doc.text('Delivery Date:', rightColX - 35, 60);
+    doc.text('Delivery Date:', rightColLabelsX, 60, { align: 'left' });
     doc.setFont('helvetica', 'normal');
     doc.text(format(new Date(order.deliveryDate), 'PP'), rightColX, 60, { align: 'right' });
 
