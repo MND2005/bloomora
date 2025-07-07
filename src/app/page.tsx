@@ -32,6 +32,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -293,30 +299,38 @@ export default function DashboardPage() {
                     const toPay = order.totalValue - amountPaid;
 
                     return (
-                        <Card key={order.id} className="p-4 flex flex-col gap-3 transition-colors hover:bg-accent">
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                <div className="grid gap-0.5">
-                                    <p className="font-semibold">{order.orderId} - <span className="font-normal">{customers[order.customerId]?.fullName || 'Unknown'}</span></p>
-                                    <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
+                        <Card key={order.id} className="p-0 overflow-hidden transition-colors hover:bg-accent">
+                          <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value={order.id} className="border-b-0">
+                              <AccordionTrigger className="p-4 hover:no-underline">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 w-full text-left">
+                                    <div className="grid gap-0.5">
+                                        <p className="font-semibold">{order.orderId} - <span className="font-normal">{customers[order.customerId]?.fullName || 'Unknown'}</span></p>
+                                        <p className="text-sm text-muted-foreground">Delivery: {format(new Date(order.deliveryDate), 'PP')}</p>
+                                    </div>
+                                    <Badge variant={getStatusBadgeVariant(order.status)} className="self-start sm:self-center">{order.status}</Badge>
                                 </div>
-                                <Badge variant={getStatusBadgeVariant(order.status)} className="self-start sm:self-center">{order.status}</Badge>
-                            </div>
-                            <div className="border-t border-border mt-2 pt-3">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center text-sm">
-                                    <div>
-                                        <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">Total Value</p>
-                                        <p className="font-bold text-base">LKR {order.totalValue.toFixed(2)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">Paid</p>
-                                        <p className="font-bold text-base text-chart-2">LKR {amountPaid.toFixed(2)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">{dialogContent === 'outstanding' ? 'To Pay' : 'Remaining Due'}</p>
-                                        <p className="font-bold text-base text-destructive">LKR {toPay.toFixed(2)}</p>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <div className="border-t border-border px-4 pb-4 pt-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center text-sm">
+                                        <div>
+                                            <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">Total Value</p>
+                                            <p className="font-bold text-base">LKR {order.totalValue.toFixed(2)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">Paid</p>
+                                            <p className="font-bold text-base text-chart-2">LKR {amountPaid.toFixed(2)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-muted-foreground mb-1 uppercase text-xs tracking-wider">{dialogContent === 'outstanding' ? 'To Pay' : 'Remaining Due'}</p>
+                                            <p className="font-bold text-base text-destructive">LKR {toPay.toFixed(2)}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
                         </Card>
                     )
                    })
