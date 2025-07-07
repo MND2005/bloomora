@@ -100,6 +100,7 @@ export default function ReportsPage() {
       totalRevenue,
       outstandingBalance,
       codOrders: filteredOrders.filter(o => o.status === 'COD').length,
+      advanceTakenOrders: filteredOrders.filter(o => o.status === 'Advance Taken').length,
       completedOrders: filteredOrders.filter(o => o.status === 'Completed').length,
       deliveredOrders: filteredOrders.filter(o => o.status === 'Delivered').length,
     }
@@ -143,6 +144,7 @@ export default function ReportsPage() {
             [{ content: 'Total Revenue', styles: { fontStyle: 'bold' } }, `LKR ${reportStats.totalRevenue.toFixed(2)}`],
             [{ content: 'Outstanding Balance', styles: { fontStyle: 'bold' } }, `LKR ${reportStats.outstandingBalance.toFixed(2)}`],
             [{ content: 'COD Orders', styles: { fontStyle: 'bold' } }, reportStats.codOrders],
+            [{ content: 'Advance Taken Orders', styles: { fontStyle: 'bold' } }, reportStats.advanceTakenOrders],
             [{ content: 'Completed Orders', styles: { fontStyle: 'bold' } }, reportStats.completedOrders],
             [{ content: 'Delivered Orders', styles: { fontStyle: 'bold' } }, reportStats.deliveredOrders],
         ],
@@ -285,6 +287,10 @@ export default function ReportsPage() {
                     <Card className="p-4">
                         <h3 className="text-sm font-medium text-muted-foreground">COD Orders</h3>
                         <p className="text-2xl font-bold">{reportStats.codOrders}</p>
+                    </Card>
+                    <Card className="p-4">
+                        <h3 className="text-sm font-medium text-muted-foreground">Advance Taken Orders</h3>
+                        <p className="text-2xl font-bold">{reportStats.advanceTakenOrders}</p>
                     </Card>
                     <Card className="p-4">
                         <h3 className="text-sm font-medium text-muted-foreground">Completed Orders</h3>
