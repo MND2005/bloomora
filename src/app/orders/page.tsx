@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye, Package, Search } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Loader2, Eye, Package, Search, Download } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -46,6 +47,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Input } from '@/components/ui/input';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 
 export default function OrdersPage() {
@@ -194,6 +197,127 @@ export default function OrdersPage() {
   const activeOrders = filteredOrders.filter(o => o.status !== 'Delivered');
   const deliveredOrders = filteredOrders.filter(o => o.status === 'Delivered');
 
+  const handleDownloadInvoice = (order: Order) => {
+    const customer = customers.find(c => c.id === order.customerId);
+    if (!customer) {
+        toast({ title: 'Error', description: 'Customer not found for this order.', variant: 'destructive'});
+        return;
+    }
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    doc.setFontSize(26);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Bloomora', 14, 22);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('123 Floral Ave, Flower City, 12345', 14, 28);
+    
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INVOICE', pageWidth - 14, 22, { align: 'right' });
+
+    doc.setLineWidth(0.5);
+    doc.line(14, 40, pageWidth - 14, 40);
+
+    doc.setFontSize(10);
+    doc.text('BILL TO', 14, 50);
+    doc.setFont('helvetica', 'bold');
+    doc.text(customer.fullName, 14, 55);
+    doc.setFont('helvetica', 'normal');
+    doc.text(customer.address.replace(/\n/g, ', '), 14, 60);
+    doc.text(customer.phone, 14, 65);
+    if (customer.email) {
+        doc.text(customer.email, 14, 70);
+    }
+    
+    const rightColX = pageWidth - 14;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Order ID:', rightColX - 35, 50);
+    doc.setFont('helvetica', 'normal');
+    doc.text(order.orderId, rightColX, 50, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Order Date:', rightColX - 35, 55);
+    doc.setFont('helvetica', 'normal');
+    doc.text(format(new Date(order.orderDate), 'PP'), rightColX, 55, { align: 'right' });
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Delivery Date:', rightColX - 35, 60);
+    doc.setFont('helvetica', 'normal');
+    doc.text(format(new Date(order.deliveryDate), 'PP'), rightColX, 60, { align: 'right' });
+
+    const productLines = order.products.split('\n').map(line => [line]);
+
+    (doc as any).autoTable({
+        startY: 80,
+        head: [['Products Ordered']],
+        body: productLines,
+        theme: 'striped',
+        headStyles: { fillColor: [105, 87, 227] }, // primary color
+    });
+
+    let finalY = (doc as any).lastAutoTable.finalY || 100;
+    
+    const drawTotals = (y: number) => {
+        let currentY = y + 10;
+        doc.setFontSize(12);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text('Total:', 140, currentY);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`LKR ${order.totalValue.toFixed(2)}`, rightColX, currentY, { align: 'right' });
+
+        if (order.status === 'Advance Taken' && order.advanceAmount) {
+            currentY += 7;
+            doc.setFont('helvetica', 'bold');
+            doc.text('Paid:', 140, currentY);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`LKR ${order.advanceAmount.toFixed(2)}`, rightColX, currentY, { align: 'right' });
+        } else if (order.status === 'Completed' || order.status === 'Delivered') {
+            currentY += 7;
+            doc.setFont('helvetica', 'bold');
+            doc.text('Paid:', 140, currentY);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`LKR ${order.totalValue.toFixed(2)}`, rightColX, currentY, { align: 'right' });
+        }
+
+        doc.setLineWidth(0.2);
+        doc.line(135, currentY + 3, rightColX, currentY + 3);
+        currentY += 7;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Balance Due:', 140, currentY);
+        let balanceDue = 0;
+        if (order.status === 'COD') {
+            balanceDue = order.totalValue;
+        } else if (order.status === 'Advance Taken' && order.advanceAmount) {
+            balanceDue = order.totalValue - order.advanceAmount;
+        }
+        doc.text(`LKR ${balanceDue.toFixed(2)}`, rightColX, currentY, { align: 'right' });
+        
+        return currentY;
+    };
+    
+    finalY = drawTotals(finalY);
+
+    const notesY = doc.internal.pageSize.getHeight() - 40;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Notes', 14, notesY);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Thank you for your business!', 14, notesY + 5);
+
+    const pageHeight = doc.internal.pageSize.getHeight();
+    doc.setLineWidth(0.5);
+    doc.line(14, pageHeight - 20, pageWidth - 14, pageHeight - 20);
+    doc.text('Bloomora | hello@bloomora.com | +94 112 345 678', pageWidth/2, pageHeight-10, { align: 'center'});
+
+    doc.save(`Invoice-${order.orderId}.pdf`);
+  };
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -260,15 +384,19 @@ export default function OrdersPage() {
                                       </Button>
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => handleViewDetails(order)}>
-                                          <Eye className="mr-2 h-4 w-4" /> View
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleEdit(order)}>
-                                          <Pencil className="mr-2 h-4 w-4" /> Edit
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
-                                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                      </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleViewDetails(order)}>
+                                            <Eye className="mr-2 h-4 w-4" /> View
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleDownloadInvoice(order)}>
+                                          <Download className="mr-2 h-4 w-4" /> Download Invoice
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => handleEdit(order)}>
+                                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                        </DropdownMenuItem>
                                       </DropdownMenuContent>
                                   </DropdownMenu>
                               </div>
@@ -315,15 +443,19 @@ export default function OrdersPage() {
                                                     </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => handleViewDetails(order)}>
-                                                        <Eye className="mr-2 h-4 w-4" /> View
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleEdit(order)} disabled>
-                                                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
-                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                                    </DropdownMenuItem>
+                                                      <DropdownMenuItem onClick={() => handleViewDetails(order)}>
+                                                          <Eye className="mr-2 h-4 w-4" /> View
+                                                      </DropdownMenuItem>
+                                                      <DropdownMenuItem onClick={() => handleDownloadInvoice(order)}>
+                                                        <Download className="mr-2 h-4 w-4" /> Download Invoice
+                                                      </DropdownMenuItem>
+                                                      <DropdownMenuSeparator />
+                                                      <DropdownMenuItem onClick={() => handleEdit(order)} disabled>
+                                                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                      </DropdownMenuItem>
+                                                      <DropdownMenuItem onClick={() => openDeleteDialog(order)} className="text-destructive focus:text-destructive">
+                                                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                      </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </div>
